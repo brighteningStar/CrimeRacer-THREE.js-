@@ -25,6 +25,7 @@
 		<script src="objects/car.js"></script>
 		<script src="objects/wall.js"></script>
 		<script src="objects/world.js"></script>
+		<script src="objects/tree.js"></script>
 
 		<script>
 			var container, stats;
@@ -42,6 +43,7 @@
 			var cubes = [];
 			init();
 			animate();
+			
 
 			function init() {
 
@@ -107,10 +109,13 @@
 				scene.add(sphere);
 				
 				// Box
+				var myWorld = new CrimeRacer.World;
+				var multiplier = 100;
 				
-				var boxGeometry = new THREE.CubeGeometry(200, 200, 200);
+				for (var i=0; i<20; i++){
+				var boxGeometry = new THREE.CubeGeometry(100, 200, 100);
 				var boxMaterial = new THREE.MeshLambertMaterial({
-					color : 0xffffff,
+					color : 0x5CD715,
 					shading : THREE.FlatShading,
 					overdraw : true
 					
@@ -118,36 +123,39 @@
 
 				box = new THREE.Mesh(boxGeometry, boxMaterial);
 				scene.add(box);
-				box.position.x = 1000;
-				box.position.y = 100;
-				box.position.z = 500;
+				myWorld.setWorldTreePosition(multiplier);
+				box.position.x = myWorld.myTreePosition.position.x;
+				box.position.y = myWorld.myTreePosition.position.y;
+				box.position.z = myWorld.myTreePosition.position.z;
 				
-				THREE.Collisions.colliders.push( THREE.CollisionUtils.MeshOBB( box ) );
-				cubes.push(box);
+				multiplier += 500;
+				}
+				// THREE.Collisions.colliders.push( THREE.CollisionUtils.MeshOBB( box ) );
+				// cubes.push(box);
 				
 				
 				//	==================================WALL MAKING=====================================
 				// ===================================WALL MAKING=====================================
 		
 				
-				var myWorld = new CrimeRacer.World;
+				
 			
 				
 				for (var j = 0; j<4; j++){
 				
 				if (j==0 || j==1){
-				var boxGeometry = new THREE.CubeGeometry(200, 200, 700);
-				var boxMaterial = new THREE.MeshLambertMaterial({
-					color : 0xffffff,
+					var boxGeometry = new THREE.CubeGeometry(200, 200, 700);
+					var boxMaterial = new THREE.MeshLambertMaterial({
+					color : 0x8A5719,
 					shading : THREE.FlatShading,
 					overdraw : true
 					
 				});
 				}
-				if (j==2 || j==3){
-				var boxGeometry = new THREE.CubeGeometry(700, 200, 200);
-				var boxMaterial = new THREE.MeshLambertMaterial({
-					color : 0xffffff,
+					if (j==2 || j==3){
+					var boxGeometry = new THREE.CubeGeometry(700, 200, 200);
+					var boxMaterial = new THREE.MeshLambertMaterial({
+					color : 0x8A5719,
 					shading : THREE.FlatShading,
 					overdraw : true
 					
@@ -174,12 +182,12 @@
 				
 				
 
-				box = new THREE.Mesh(boxGeometry, boxMaterial);
-				scene.add(box);
-				myWorld.setWallFrontBackPosition();
-				box.position.x = myWorld.myWallBack.position.x;		
-				box.position.y = myWorld.myWallBack.position.y;			
-				box.position.z = myWorld.myWallBack.position.z;
+					box = new THREE.Mesh(boxGeometry, boxMaterial);
+					scene.add(box);
+					myWorld.setWallFrontBackPosition();
+					box.position.x = myWorld.myWallBack.position.x;		
+					box.position.y = myWorld.myWallBack.position.y;			
+					box.position.z = myWorld.myWallBack.position.z;
 				
 			
 				}
@@ -227,7 +235,7 @@
 
 				var carGeometry = new THREE.CubeGeometry(150, 100, 100);
 				var carMaterial = new THREE.MeshLambertMaterial({
-					color : 0xffffff,
+					color : 0x0000ff,
 					shading : THREE.FlatShading,
 					overdraw : true
 				});
@@ -242,22 +250,33 @@
 		
 				//THREE.Collisions.colliders.push( THREE.CollisionUtils.MeshOBB( car ) );
 				
-	
+				// CYlinder Making as Tree
+				
+				var treeGeometry = new THREE.CylinderGeometry(50, 50, 400, 50, 50, false);
+				var treeMetrial = new  THREE.MeshLambertMaterial({
+				color: 0x0000ff
+				});
+				
+				var tree = new THREE.Mesh(treeGeometry, treeMetrial);
+				tree.position.x = 1000;
+				tree.position.y = 50;
+				tree.position.z = 50;
+				//scene.add(tree);
 
 
 				// Lights
 
-				var ambientLight = new THREE.AmbientLight(/*Math.random() * 0x10*/0xc9ac45);
+				var ambientLight = new THREE.AmbientLight(/*Math.random() * 0x10*/0xffffff);
 				scene.add(ambientLight);
 
-				var directionalLight = new THREE.DirectionalLight(/*Math.random() * 0xffffff*/0xc9ac45);
+				var directionalLight = new THREE.DirectionalLight(/*Math.random() * 0xffffff*/0xffffff);
 				directionalLight.position.x = Math.random() - 0.5;
 				directionalLight.position.y = Math.random() - 0.5;
 				directionalLight.position.z = Math.random() - 0.5;
 				directionalLight.position.normalize();
 				scene.add(directionalLight);
 
-				var directionalLight = new THREE.DirectionalLight(/*Math.random() * 0xffffff*/0xc9ac45);
+				var directionalLight = new THREE.DirectionalLight(/*Math.random() * 0xffffff*/0xffffff);
 				directionalLight.position.x = Math.random() - 0.5;
 				directionalLight.position.y = Math.random() - 0.5;
 				directionalLight.position.z = Math.random() - 0.5;

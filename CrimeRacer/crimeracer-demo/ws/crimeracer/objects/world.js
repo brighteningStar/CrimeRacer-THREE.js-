@@ -26,7 +26,7 @@ var myFunctionXPos = function () {
     if (typeof myFunctionXPos.myStaticVar == 'undefined') {  
         myFunctionXPos.myStaticVar = 0;  
     }  
-    //alert(myFunction.myStaticVar);  
+      
     myFunctionXPos.myStaticVar += 500;
 		
 	return myFunctionXPos.myStaticVar;
@@ -39,7 +39,7 @@ CrimeRacer.World.prototype.setWallFrontBackPosition = function () {
 		
 	this.myWallFront.setPos(4700, 100, -5000+zDistance);
 	this.myWallBack.setPos(-4700, 100, -15000+zDistance);
-	//console.log(myFunction());
+	
 }
 
 CrimeRacer.World.prototype.setWallLeftRightPosition = function () {
@@ -50,5 +50,16 @@ CrimeRacer.World.prototype.setWallLeftRightPosition = function () {
 		
 	this.myWallLeft.setPos(-4750+xDistance, 100, -4700);
 	this.myWallRight.setPos(-15000+xDistance, 100, 4700);
-	//console.log(myFunction());
+	
+}
+
+CrimeRacer.World.prototype.setWorldTreePosition = function (multiplier) {
+	
+	//var xDistance = myFunctionXPos();
+	this.myTreePosition = new CrimeRacer.Tree;
+	
+	this.myTreePosition.setPos(-5000+multiplier, 80, 1700);
+	
+	
+	
 }
