@@ -11,6 +11,7 @@
 				background-color: #cccccc;
 				margin: 0px;
 				overflow: hidden;
+				//background-image:url('images/background.jpg');
 			}
 		</style>
 	</head>
@@ -87,6 +88,7 @@
 				 ground.rotation.z = Math.PI / 2;
 				//ground.rotation.y = -Math.PI / 2;
 				ground.receiveShadow = true;
+				
 				scene.add( ground );
 				
 				
@@ -112,12 +114,16 @@
 				var myWorld = new CrimeRacer.World;
 				var multiplier = 100;
 				
-				for (var i=0; i<20; i++){
+				for (var i=0; i<19; i++){
+				var texture = THREE.ImageUtils.loadTexture( "images/wooden.jpg" );
+				texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+				texture.repeat.set( .5, .5 );
 				var boxGeometry = new THREE.CubeGeometry(100, 200, 100);
 				var boxMaterial = new THREE.MeshLambertMaterial({
-					color : 0x5CD715,
+					// color : 0x5CD715,
 					shading : THREE.FlatShading,
-					overdraw : true
+					overdraw : true,
+					map : texture
 					
 				});
 
@@ -143,28 +149,33 @@
 				
 				for (var j = 0; j<4; j++){
 				
+				var texture = THREE.ImageUtils.loadTexture( "images/stone2.jpg" );
+				texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+				texture.repeat.set( .5, .5 );
 				if (j==0 || j==1){
-					var boxGeometry = new THREE.CubeGeometry(200, 200, 700);
+					var boxGeometry = new THREE.CubeGeometry(100, 200, 100);
 					var boxMaterial = new THREE.MeshLambertMaterial({
 					color : 0x8A5719,
 					shading : THREE.FlatShading,
-					overdraw : true
+					overdraw : true,
+					map : texture
 					
 				});
 				}
 					if (j==2 || j==3){
-					var boxGeometry = new THREE.CubeGeometry(700, 200, 200);
+					var boxGeometry = new THREE.CubeGeometry(100, 200, 100);
 					var boxMaterial = new THREE.MeshLambertMaterial({
 					color : 0x8A5719,
 					shading : THREE.FlatShading,
-					overdraw : true
+					overdraw : true,
+					map : texture
 					
 				});
 				}
 				
 					if (j==0){
 						
-					for (var i=0; i<20; i++){				
+					for (var i=0; i<100; i++){				
 
 					box = new THREE.Mesh(boxGeometry, boxMaterial);
 					scene.add(box);
@@ -178,7 +189,7 @@
 				
 					if (j==1){
 					
-					for (var i=0; i<20; i++){
+					for (var i=0; i<100; i++){
 				
 				
 
@@ -195,7 +206,7 @@
 					
 				}
 					if (j==2){
-					for (var i=0; i<20; i++){				
+					for (var i=0; i<100; i++){				
 
 					box = new THREE.Mesh(boxGeometry, boxMaterial);
 					scene.add(box);
@@ -210,7 +221,7 @@
 				}
 				
 					if (j==3){
-					for (var i=0; i<20; i++){				
+					for (var i=0; i<100; i++){				
 
 					box = new THREE.Mesh(boxGeometry, boxMaterial);
 					scene.add(box);

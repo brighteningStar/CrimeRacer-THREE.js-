@@ -18,7 +18,7 @@ var myFunctionZPos = function () {
         myFunctionZPos.myStaticVar = 0;  
     }  
     //alert(myFunction.myStaticVar);  
-    myFunctionZPos.myStaticVar += 500;
+    myFunctionZPos.myStaticVar += 100;
 		
 	return myFunctionZPos.myStaticVar;
 }
@@ -27,7 +27,7 @@ var myFunctionXPos = function () {
         myFunctionXPos.myStaticVar = 0;  
     }  
       
-    myFunctionXPos.myStaticVar += 500;
+    myFunctionXPos.myStaticVar += 100;
 		
 	return myFunctionXPos.myStaticVar;
 }
@@ -58,7 +58,7 @@ CrimeRacer.World.prototype.setWorldTreePosition = function (multiplier) {
 	//var xDistance = myFunctionXPos();
 	this.myTreePosition = new CrimeRacer.Tree;
 	
-	this.myTreePosition.setPos(-5000+multiplier, 80, 1700);
+	this.myTreePosition.setPos(-4650+multiplier, 80, 1700);
 	
 	
 	
