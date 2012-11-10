@@ -23,6 +23,8 @@
 		<script src="threejs/build/Stats.js"></script>
 		<script src="extras/THREEx.KeyboardState.js"></script>
 		<script src="objects/car.js"></script>
+		<script src="objects/wall.js"></script>
+		<script src="objects/world.js"></script>
 
 		<script>
 			var container, stats;
@@ -40,7 +42,6 @@
 			var cubes = [];
 			init();
 			animate();
-			
 
 			function init() {
 
@@ -125,52 +126,113 @@
 				cubes.push(box);
 				
 				
-				//Another Box
-				var j=0;
-				for (var i=0; i<5; i++){
+				//	==================================WALL MAKING=====================================
+				// ===================================WALL MAKING=====================================
+		
 				
-				var boxGeometry = new THREE.CubeGeometry(200, 200, 500);
+				var myWorld = new CrimeRacer.World;
+			
+				
+				for (var j = 0; j<4; j++){
+				
+				if (j==0 || j==1){
+				var boxGeometry = new THREE.CubeGeometry(200, 200, 700);
 				var boxMaterial = new THREE.MeshLambertMaterial({
 					color : 0xffffff,
 					shading : THREE.FlatShading,
 					overdraw : true
 					
 				});
-
-				 box = new THREE.Mesh(boxGeometry, boxMaterial);
-				scene.add(box);
-				box.position.x = 4000;
-				box.position.y = 100;
-				box.position.z = 500 + j;
-				j+=500;
+				}
+				if (j==2 || j==3){
+				var boxGeometry = new THREE.CubeGeometry(700, 200, 200);
+				var boxMaterial = new THREE.MeshLambertMaterial({
+					color : 0xffffff,
+					shading : THREE.FlatShading,
+					overdraw : true
+					
+				});
 				}
 				
-				// Mid Plane
+					if (j==0){
+						
+					for (var i=0; i<20; i++){				
+
+					box = new THREE.Mesh(boxGeometry, boxMaterial);
+					scene.add(box);
+					myWorld.setWallFrontBackPosition();
+					box.position.x = myWorld.myWallFront.position.x;
+					box.position.y = myWorld.myWallFront.position.y;			
+					box.position.z = myWorld.myWallFront.position.z;
+			
+				}	
+				}
 				
-				// var planeGeo = new THREE.PlaneGeometry(100, 100);
-				// var planeMetrial = new THREE.MeshLambertMaterial({
-				// color: 0xffffff,
-				// //shading : THREE.FlatShading,
-				// //overdraw : true
-				// });
+					if (j==1){
+					
+					for (var i=0; i<20; i++){
 				
-				// var mid = new THREE.Mesh(planeGeo, planeMetrial);
-				// scene.add(mid);
-				// mid.position.x = 0;
-				// mid.position.y = 10;
-				// mid.position.z = 1600;
-				//mid.rotation.x = -(Math.PI / 2);
+				
+
+				box = new THREE.Mesh(boxGeometry, boxMaterial);
+				scene.add(box);
+				myWorld.setWallFrontBackPosition();
+				box.position.x = myWorld.myWallBack.position.x;		
+				box.position.y = myWorld.myWallBack.position.y;			
+				box.position.z = myWorld.myWallBack.position.z;
+				
+			
+				}
+			
+					
+				}
+					if (j==2){
+					for (var i=0; i<20; i++){				
+
+					box = new THREE.Mesh(boxGeometry, boxMaterial);
+					scene.add(box);
+					myWorld.setWallLeftRightPosition();
+					box.position.x = myWorld.myWallLeft.position.x;		
+					box.position.y = myWorld.myWallLeft.position.y;			
+					box.position.z = myWorld.myWallLeft.position.z;
+				
+		
+				}
+		
+				}
+				
+					if (j==3){
+					for (var i=0; i<20; i++){				
+
+					box = new THREE.Mesh(boxGeometry, boxMaterial);
+					scene.add(box);
+					myWorld.setWallLeftRightPosition();
+					box.position.x = myWorld.myWallRight.position.x;		
+					box.position.y = myWorld.myWallRight.position.y;			
+					box.position.z = myWorld.myWallRight.position.z;
+				
+			
+				}
+
+				}
+				}
+				
+				
 				
 				// Cubes
+				
+				mycar = new CrimeRacer.Car; 
+				mycar.move(1, 0, 0);
+				console.log(mycar.position.x);
 
-				var carGeometry = new THREE.CubeGeometry(100, 50, 50);
+				var carGeometry = new THREE.CubeGeometry(150, 100, 100);
 				var carMaterial = new THREE.MeshLambertMaterial({
 					color : 0xffffff,
 					shading : THREE.FlatShading,
 					overdraw : true
 				});
 				car = new THREE.Mesh(carGeometry, carMaterial);
-				car.position.x = 50;
+				car.position.x = mycar.position.x;
 				car.position.y = 30;
 				car.position.z = 100;
 				scene.add(car);
@@ -217,9 +279,9 @@
 
 				window.addEventListener('resize', onWindowResize, false);
 
-				mycar = new CrimeRacer.Car; 
-				mycar.move(1, 0, 0);
-				console.log(mycar.position.x);
+				//mycar = new CrimeRacer.Car; 
+				//mycar.move(1, 0, 0);
+				//console.log(mycar.position.x);
 			}
 
 			function onWindowResize() {
