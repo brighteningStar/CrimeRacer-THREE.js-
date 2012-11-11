@@ -63,3 +63,14 @@ CrimeRacer.World.prototype.setWorldTreePosition = function (multiplier) {
 	
 	
 }
+
+CrimeRacer.World.prototype.setWorldMidWayPosition = function (multiplier) {
+	
+	//var xDistance = myFunctionXPos();
+	this.myMidWayPosition = new CrimeRacer.MidWay;
+	
+	this.myMidWayPosition.setPos(-4650+multiplier, 20, 1700);
+	
+	
+	
+}

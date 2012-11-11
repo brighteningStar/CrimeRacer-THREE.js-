@@ -27,6 +27,7 @@
 		<script src="objects/wall.js"></script>
 		<script src="objects/world.js"></script>
 		<script src="objects/tree.js"></script>
+		<script src="objects/midWay.js"></script>
 
 		<script>
 			var container, stats;
@@ -41,7 +42,10 @@
 			var mycar; 
 			var box;
 			var textu;
-			var cubes = [];
+		
+			var collidableMeshList = [];
+
+			
 			init();
 			animate();
 			
@@ -79,7 +83,7 @@
 				texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
 				texture.repeat.set( 3, 3 );
 
-				groundBasic = new THREE.MeshLambertMaterial( { /*color: 0x5c6b68,*/ map: texture } );
+				groundBasic = new THREE.MeshLambertMaterial( { color: 0x473e34, map: texture } );
 				//groundBasic.color.setHSV( 0.1, 0.45, 0.995 );
 
 				ground = new THREE.Mesh( new THREE.PlaneGeometry( 10000, 10000, 80,80), groundBasic );
@@ -129,15 +133,45 @@
 
 				box = new THREE.Mesh(boxGeometry, boxMaterial);
 				scene.add(box);
+				
 				myWorld.setWorldTreePosition(multiplier);
 				box.position.x = myWorld.myTreePosition.position.x;
 				box.position.y = myWorld.myTreePosition.position.y;
 				box.position.z = myWorld.myTreePosition.position.z;
-				
+				collidableMeshList.push(box);
 				multiplier += 500;
 				}
-				// THREE.Collisions.colliders.push( THREE.CollisionUtils.MeshOBB( box ) );
-				// cubes.push(box);
+				
+				
+				
+				// =============================MID WAY===============================
+				// var multiplier = 50;
+				
+				// for (var i=0; i<19; i++){
+				// var texture = THREE.ImageUtils.loadTexture( "images/wooden.jpg" );
+				// texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+				// texture.repeat.set( .5, .5 );
+				// var midGeometry = new THREE.PlaneGeometry(300, 500, 300);
+				// var midMaterial = new THREE.MeshLambertMaterial({
+					// //color : 0x5CD715,
+					// shading : THREE.FlatShading,
+					// overdraw : true,
+					// map : texture
+					
+				// });
+
+				// var midWay = new THREE.Mesh(midGeometry, midMaterial);
+				// scene.add(midWay);
+				
+				// myWorld.setWorldMidWayPosition(multiplier);
+				// midWay.position.x = myWorld.myMidWayPosition.position.x;
+				// midWay.position.y = myWorld.myMidWayPosition.position.y;
+				// midWay.position.z = myWorld.myMidWayPosition.position.z;
+				// midWay.rotation.x = (- Math.PI / 2) ;
+				// midWay.rotation.z = Math.PI / 2;
+				// collidableMeshList.push(midWay);
+				// multiplier += 500;
+				// }
 				
 				
 				//	==================================WALL MAKING=====================================
@@ -179,6 +213,7 @@
 
 					box = new THREE.Mesh(boxGeometry, boxMaterial);
 					scene.add(box);
+					collidableMeshList.push(box);
 					myWorld.setWallFrontBackPosition();
 					box.position.x = myWorld.myWallFront.position.x;
 					box.position.y = myWorld.myWallFront.position.y;			
@@ -195,6 +230,7 @@
 
 					box = new THREE.Mesh(boxGeometry, boxMaterial);
 					scene.add(box);
+					collidableMeshList.push(box);
 					myWorld.setWallFrontBackPosition();
 					box.position.x = myWorld.myWallBack.position.x;		
 					box.position.y = myWorld.myWallBack.position.y;			
@@ -210,6 +246,7 @@
 
 					box = new THREE.Mesh(boxGeometry, boxMaterial);
 					scene.add(box);
+					collidableMeshList.push(box);
 					myWorld.setWallLeftRightPosition();
 					box.position.x = myWorld.myWallLeft.position.x;		
 					box.position.y = myWorld.myWallLeft.position.y;			
@@ -225,6 +262,7 @@
 
 					box = new THREE.Mesh(boxGeometry, boxMaterial);
 					scene.add(box);
+					collidableMeshList.push(box);
 					myWorld.setWallLeftRightPosition();
 					box.position.x = myWorld.myWallRight.position.x;		
 					box.position.y = myWorld.myWallRight.position.y;			
@@ -251,28 +289,17 @@
 					overdraw : true
 				});
 				car = new THREE.Mesh(carGeometry, carMaterial);
+				
 				car.position.x = mycar.position.x;
-				car.position.y = 30;
+				car.position.y = 60;
 				car.position.z = 100;
 				scene.add(car);
-				THREE.Collisions.colliders.push( THREE.CollisionUtils.MeshOBB( car ) );
-				cubes.push(car);
+				// THREE.Collisions.colliders.push( THREE.CollisionUtils.MeshOBB( car ) );
+				// cubes.push(car);
 				
 		
 				//THREE.Collisions.colliders.push( THREE.CollisionUtils.MeshOBB( car ) );
 				
-				// CYlinder Making as Tree
-				
-				var treeGeometry = new THREE.CylinderGeometry(50, 50, 400, 50, 50, false);
-				var treeMetrial = new  THREE.MeshLambertMaterial({
-				color: 0x0000ff
-				});
-				
-				var tree = new THREE.Mesh(treeGeometry, treeMetrial);
-				tree.position.x = 1000;
-				tree.position.y = 50;
-				tree.position.z = 50;
-				//scene.add(tree);
 
 
 				// Lights
@@ -326,12 +353,39 @@
 				renderer.setSize(window.innerWidth, window.innerHeight);
 
 			}
+			
+			function collision(){
+			var originPoint = car.position.clone();
+
+			//clearText();
+	
+			for (var vertexIndex = 0; vertexIndex < car.geometry.vertices.length; vertexIndex++)
+			{		
+				var localVertex = car.geometry.vertices[vertexIndex].clone();
+				var globalVertex = car.matrix.multiplyVector3(localVertex);
+				var directionVector = globalVertex.subSelf( car.position );
+		
+				var ray = new THREE.Ray( originPoint, directionVector.clone().normalize() );
+				var collisionResults = ray.intersectObjects( collidableMeshList );
+				if ( collisionResults.length > 0 && collisionResults[0].distance < directionVector.length() ) {
+					
+					speed = -10;
+				}
+				
+				
+				//appendText(" Hit ");
+				//alert("Collision");
+				
+			}
+			}
 
 			//
 
 			function animate() {
 
 				requestAnimationFrame(animate);
+				
+				collision();
 
 				render();
 				stats.update();
@@ -388,11 +442,6 @@
 				car.position.x = computedX;
 				car.position.z = computedZ;
 				
-				if(car.position == box.position){
-				
-				console.log("X: " + car.position.x  );
-				console.log("X box: " + box.position.x  );
-				}
 
 				  //console.log("X: " + car.position.x  );
 				//  console.log("Z: " + car.position.z  );
