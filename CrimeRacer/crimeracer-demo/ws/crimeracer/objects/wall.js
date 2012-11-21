@@ -14,11 +14,6 @@ CrimeRacer.Wall = function() {
 	// default at position 0
 }
 
-// CrimeRacer.Car.prototype.move = function(dX, dY, dZ) {
-	// this.position.x += dX;
-	// this.position.y += dY;
-	// this.position.z += dZ;
-// }
 
 CrimeRacer.Wall.prototype.setPos = function(xPos, yPos, zPos) {
 	

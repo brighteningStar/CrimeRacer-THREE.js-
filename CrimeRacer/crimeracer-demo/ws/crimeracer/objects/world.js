@@ -74,3 +74,14 @@ CrimeRacer.World.prototype.setWorldMidWayPosition = function (multiplier) {
 	
 	
 }
+
+CrimeRacer.World.prototype.updateWorldTime = function () {
+	
+	//var xDistance = myFunctionXPos();
+	this.worldTime = new CrimeRacer.Time;
+	
+	return this.worldTime.updateTime();
+	
+	
+	
+}
