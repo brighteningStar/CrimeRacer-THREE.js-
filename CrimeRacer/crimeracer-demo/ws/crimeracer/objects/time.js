@@ -13,7 +13,7 @@ CrimeRacer.Time = function() {
 	this.timer = 0;
 	this.currentTime = new Date();
 	this.start = false;
-	// default at position 0
+	
 }
 
 CrimeRacer.Time.prototype.updateTime = function() {
@@ -22,7 +22,7 @@ CrimeRacer.Time.prototype.updateTime = function() {
 		this.currentTime = new Date();
 		
 	this.timer =  this.currentTime.getSeconds() - this.startTime;
-	//console.log("time = " + timer);
+	
 	
 }
 

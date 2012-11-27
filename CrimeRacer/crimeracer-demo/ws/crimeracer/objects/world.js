@@ -83,5 +83,14 @@ CrimeRacer.World.prototype.updateWorldTime = function () {
 	return this.worldTime.updateTime();
 	
 	
+}
+
+CrimeRacer.World.prototype.setWorldCar = function () {
+	
+	//var xDistance = myFunctionXPos();
+	this.myCar = new CrimeRacer.Car;
+	
+	this.myCar.setPos(0, 60, 0);
+	
 	
 }

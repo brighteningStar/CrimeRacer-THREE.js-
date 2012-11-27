@@ -9,21 +9,24 @@
 			
 				font-family: Monospace;
 				background-color: #cccccc;
-				margin: 0px;
+				margin: 0px auto;
 				overflow: hidden;
 				//background-image:url('images/background.jpg');
 			}
 			 #hud {
-				top: 10px;
+				bottom: 10px;
 				position: absolute;
 				right: 10px;
 				z-index: 100;
 				background-color : #ffffff;
-				opacity: .5;
+				opacity: 1;
 				border : 1px soild black;
 				color : black;
 				font-size : 16px;
-				
+				font-style : "Comic Sans MS", cursive, sans-serif;
+				font-weight : bold;
+				padding-right: 5px;
+				padding-left: 5px;
     }
 		</style>
 	</head>
@@ -35,6 +38,7 @@
 
 		<script src="threejs/three/jquery-1.7.2.min.js"></script>
 		<script src="threejs/three/three.min.js"></script>
+
 		<script src="threejs/three/CollisionUtils.js"></script>
 		<script src="threejs/three/Collisions.js"></script>
 		<script src="threejs/three/Stats.js"></script>
@@ -59,18 +63,13 @@
 			var mycar; 
 			var box;
 			var textu;
-			var timer = 0;
-			var mins = 0;
-			var start = false;
-			var check = false;
-			var currentTime = new Date();
-			var startTime = 0;
-			var setTimer = 0; 
 			var myWorld = new CrimeRacer.World;
 			var distance1 = 0;
-			
+			var collideMesh;
 			var collidableMeshList = [];
-
+			var bullets = [];
+		var cloc = new  THREE.Clock();
+		var index;
 			
 			init();
 			animate();
@@ -78,27 +77,22 @@
 
 			function init() {
 
+			
 				container = document.createElement('div');
 				document.body.appendChild(container);
 
 				var info = document.createElement('div');
-				// info.style.position = 'absolute';
-				// info.style.top = '100%';
-				// info.style.width = '100%';
-				// info.style.textAlign = 'center';
-				//info.innerHTML = '<a href="http://github.com/mrdoob/three.js" target="_blank">three.js</a> - demo by recluze';
+				
 				container.appendChild(info);
 
 				// camera = new THREE.OrthographicCamera(window.innerWidth / -2, window.innerWidth / 2, window.innerHeight / 2, window.innerHeight / -2, -2000, 1000);
 				camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 2, 2500);
 
-				// camera.position.x = 200;
-				// camera.position.y = 50;
-				// camera.position.z = 200;
+			
 				
 				camera.position.set( 2000, 2000, 2000 );
 				
-	
+				
 
 				scene = new THREE.Scene();
 
@@ -122,8 +116,15 @@
 				scene.add( ground );
 				
 				
-				$('body').append('<div id="hud"><p>Speed: <span id="speed">0</span></br>Time: <span id="time">0</span></br>distance1: <span id="distance1">0 hjjjj</span>');
-				$('#distance1').html(distance1);
+				$(document).click(function(e) {
+		e.preventDefault;
+		if (e.which === 1) { // Left click only
+			createBullet(car);
+		}
+	});
+				
+				$('body').append('<div id="hud"><p>Speed: <span id="speed">0</span></br>Time: <span id="time">0</span>');
+				
 				//Geometry
 
 				var geometry = new THREE.SphereGeometry(50);
@@ -140,7 +141,7 @@
 				sphere.position.z = -500;
 				collidableMeshList.push(sphere);
 				scene.add(sphere);
-				
+				sphere.castShadow = true;
 				// Box
 				
 				var multiplier = 100;
@@ -165,6 +166,7 @@
 				box.position.x = myWorld.myTreePosition.position.x;
 				box.position.y = myWorld.myTreePosition.position.y;
 				box.position.z = myWorld.myTreePosition.position.z;
+				box.castShadow = true;
 				collidableMeshList.push(box);
 				multiplier += 500;
 				}
@@ -313,61 +315,52 @@
 				
 				// Cubes
 				
-				mycar = new CrimeRacer.Car; 
-				mycar.move(1, 0, 0);
-				console.log(mycar.position.x);
+				//mycar = new CrimeRacer.Car; 
+				//mycar.move(1, 0, 0);
+				//console.log(mycar.position.x);
 
-				var carGeometry = new THREE.CubeGeometry(150, 100, 100);
+				var carGeometry = new THREE.CubeGeometry(100, 100, 100);
 				var carMaterial = new THREE.MeshLambertMaterial({
-					color : 0x0000ff,
+					color : 0x00FFFF,
 					shading : THREE.FlatShading,
 					overdraw : true
 				});
+				
 				car = new THREE.Mesh(carGeometry, carMaterial);
-				
-				car.position.x = mycar.position.x;
-				car.position.y = 60;
-				car.position.z = 100;
+				myWorld.setWorldCar();
+				car.position.x = myWorld.myCar.position.x;
+				car.position.y = myWorld.myCar.position.y;
+				car.position.z = myWorld.myCar.position.z;
 				scene.add(car);
+				car.castShoadow = true;
 				
 				
-				// THREE.Collisions.colliders.push( THREE.CollisionUtils.MeshOBB( car ) );
-				// cubes.push(car);
-				
-		
-				//THREE.Collisions.colliders.push( THREE.CollisionUtils.MeshOBB( car ) );
 				
 
 
 				// Lights
 
-				var ambientLight = new THREE.AmbientLight(/*Math.random() * 0x10*/0xffffff);
+				var ambientLight = new THREE.AmbientLight(/*Math.random() * 0x10*/0xFFFF00);
 				ambientLight.castShadow = true;
 				scene.add(ambientLight);
 
-				// var directionalLight = new THREE.DirectionalLight(/*Math.random() * 0xffffff*/0xffffff);
-				// directionalLight.position.x = Math.random() - 0.5;
-				// directionalLight.position.y = Math.random() - 0.5;
-				// directionalLight.position.z = Math.random() - 0.5;
-				// directionalLight.position.normalize();
-				// directionalLight.castShadow = true;
-				// scene.add(directionalLight);
+				var directionalLight = new THREE.DirectionalLight(/*Math.random() * 0xffffff*/0xFFFF00);
+				directionalLight.position.x = Math.random() - 0.5;
+				directionalLight.position.y = Math.random() - 0.5;
+				directionalLight.position.z = Math.random() - 0.5;
+				directionalLight.position.normalize();
+				directionalLight.castShadow = true;
+				scene.add(directionalLight);
 
-				// var directionalLight = new THREE.DirectionalLight(/*Math.random() * 0xffffff*/0xffffff);
-				// directionalLight.position.x = Math.random() - 0.5;
-				// directionalLight.position.y = Math.random() - 0.5;
-				// directionalLight.position.z = Math.random() - 0.5;
-				// directionalLight.position.normalize();
-				// directionalLight.castShadow = true;
-				// scene.add(directionalLight);
+				var directionalLight = new THREE.DirectionalLight(/*Math.random() * 0xffffff*/0xFFFF00);
+				directionalLight.position.x = Math.random() - 0.5;
+				directionalLight.position.y = Math.random() - 0.5;
+				directionalLight.position.z = Math.random() - 0.5;
+				directionalLight.position.normalize();
+				directionalLight.castShadow = true;
+				scene.add(directionalLight);
 				
-				 var light = new THREE.SpotLight(0x0000ff);
-				light.position.x = Math.random() - 0.5;
-				light.position.y = Math.random() - 0.5;
-				light.position.z = Math.random() - 0.5;
-				light.position.normalize();
-				light.castShadow = true;
-				scene.add(light);
+				
 
 				renderer = new THREE.CanvasRenderer();
 				renderer.setSize(window.innerWidth, window.innerHeight);
@@ -376,7 +369,7 @@
 
 				stats = new Stats();
 				stats.domElement.style.position = 'absolute';
-				stats.domElement.style.top = '0px';
+				stats.domElement.style.top = '30px';
 				container.appendChild(stats.domElement);
 
 				//keyboard
@@ -388,6 +381,26 @@
 				//mycar.move(1, 0, 0);
 				
 			}
+			
+			
+var sphereMaterial = new THREE.MeshBasicMaterial({color: 0x00FF00});
+var sphereGeo = new THREE.SphereGeometry(2,10,10);
+function createBullet(obj) {
+	
+	var sphere = new THREE.Mesh(sphereGeo, sphereMaterial);
+	sphere.position.set(obj.position.x, obj.position.y * 0.8, obj.position.z);
+
+	
+		var vector = camera.position.clone();
+		sphere.ray = new THREE.Ray(	obj.position, vector.subSelf(obj.position).normalize() );
+	
+	sphere.owner = obj;
+	
+	bullets.push(sphere);
+	scene.add(sphere);
+	
+	return sphere;
+}
 
 			function onWindowResize() {
 
@@ -415,22 +428,21 @@
 				
 				var directionVector = globalVertex.subSelf( car.position );
 				
-				//console.log('Local Vertex :'+originPoint );
+			
 		
 				var ray = new THREE.Ray( originPoint, directionVector.clone().normalize() );
 				var collisionResults = ray.intersectObjects( collidableMeshList );
-				//console.log('Local Vertex :'+directionVector.length() );
+			
 				if ( collisionResults.length > 0 && collisionResults[0].distance < directionVector.length() ) {
 					
 					speed = -10;
-					
 				}
 				
 				
 			}
 			}
 
-			//
+			
 			
 			function updateTime(){
 					
@@ -438,7 +450,7 @@
 			myWorld.updateWorldTime();
 			timer = myWorld.worldTime.currentTime.getSeconds();
 			
-			console.log("timer = " + timer);
+			
 			$('#time').html(timer + "s");
 			
 			}
@@ -455,54 +467,101 @@
 				stats.update();
 
 			}
-
+			
+			function distance(x1, x2, y1, y2){
+			
+				var dis = Math.sqrt((x2 - x1)*(x2 - x1) + (y2 - y1)*(y2 - y1));
+				return dis;
+			}
+			
+			function checkHit(bullet, b){
+			
+				for(var i = collidableMeshList.length-1 ; i>=0; i--){
+				var collideMesh = collidableMeshList[i];
+				var v = collideMesh.geometry.vertices[0];
+			var c = collideMesh.position;
+			var x = Math.abs(v.x), z = Math.abs(v.z);
+				if(bullet.x < c.x + x && bullet.x > c.x - x && bullet.z < c.z + z && bullet.z > c.z - z){
+				collideMesh.position.x = 5000;
+				collideMesh.position.y = 60;
+				collideMesh.position.z = 5000;
+				scene.remove(b);
+				// scene.remove(collideMesh);
+				// delete collidableMeshList[index];
+				return true;
+				}
+				}
+				
+				return false;
+			}
+			
 			function render() {
-
+			
+			var delta = cloc.getDelta();
+			
+			var bspeed = delta * 3000;
+			var hit = false;
+			for (var i = bullets.length-1; i >= 0; i--) {
+			var b = bullets[i];
+			
+			
+			d = b.ray.direction;
+			
+			if(checkHit(b.position, b) === true)
+				hit = true;
+				
+				
+				
+				
+			
+			if ( !hit) {
+			b.translateX(bspeed * -(d.x));
+			//bullets[i].translateY(speed * bullets[i].direction.y);
+			b.translateZ(bspeed * -(d.z));
+			
+		
+		}
+			}
 				var rotationAngle = 0.05 * Math.abs(speed / 10);
 				if (rotationAngle > 0.05)
 					rotationAngle = 0.05;
 
-				if (keyboard.pressed("left")) {
+				if (keyboard.pressed("A")) {
 					car.rotation.y += rotationAngle;
 					if (car.rotation.y > 6)
 						car.rotation.y -= 6;
 				}
 
-				if (keyboard.pressed("right")) {
+				if (keyboard.pressed("D")) {
 					car.rotation.y -= rotationAngle;
 					if (car.rotation.y < 0)
 						car.rotation.y = 6 + car.rotation.y;
 				}
-				if (keyboard.pressed("up")) {
-					speed += acceleration;
-					$('#speed').html(speed);
-					distance1 += (timer * speed) * (1/1000);
-					distance1 = Math.round(distance1);
-					$('#distance1').html(distance1 + " m");
-				}
-				if (keyboard.pressed("down")) {
-					speed -= acceleration;
-					$('#speed').html(speed);
-					distance1 += (timer * speed) * (1/1000);
-					distance1 = Math.round(distance1);
-					$('#distance1').html(distance1 + " m");
-				}
 				if (keyboard.pressed("W")) {
-					cameraYPos += cameraYPos > 500 ? 0 : 10;
+					speed += acceleration;
+					
+					// myWorld.myCar.speed+=acceleration;
+					$('#speed').html(speed);
+					
 				}
 				if (keyboard.pressed("S")) {
+					speed -= acceleration;
+					$('#speed').html(speed);
+					
+				}
+				if (keyboard.pressed("up")) {
+					cameraYPos += cameraYPos > 500 ? 0 : 10;
+				}
+				if (keyboard.pressed("down")) {
 					cameraYPos -= cameraYPos <= 0 ? 0 : 10;
 				}
 				
-				if (!keyboard.pressed("up")  && !keyboard.pressed("down")) {
+				if (!keyboard.pressed("W")  && !keyboard.pressed("S")) {
 					speed -= 1;
 					if(speed == -1)
 						speed = 0;
 					$('#speed').html(speed);
 					
-					distance1 += (timer * speed) * (1/1000);
-					distance1 = Math.round(distance1);
-					$('#distance1').html(distance1 + " m");
 					
 				}
 				
@@ -510,18 +569,21 @@
 				// update car position
 				var phaseX = 1;
 				var phaseY = 1;
+				//var eR = myWorld.myCar.rotation.y;
 				var eR = car.rotation.y;
 
 				var computedX = (car.position.x + ((speed * Math.cos(eR)) * phaseX));
 				var computedZ = (car.position.z - ((speed * Math.sin(eR)) * phaseY));
+				
+				// var computedX = (myWorld.myCar.position.x + ((myWorld.myCar.speed++ * Math.cos(eR)) * phaseX));
+				// var computedZ = (myWorld.myCar.position.z - ((myWorld.myCar.speed++ * Math.sin(eR)) * phaseY));
 
 
 				car.position.x = computedX;
 				car.position.z = computedZ;
 				
 
-				  //console.log("X: " + car.position.x  );
-				//  console.log("Z: " + car.position.z  );
+				
 				if (speed > 0)
 					speed = speed - speedDamping;
 				else
@@ -541,7 +603,7 @@
 				camera.position.y = cameraYPos;
 				 camera.lookAt(car.position); 
 				//camera.lookAt(cameraTarget);
-				
+				renderer.shadowMapEnabled = true;
 				renderer.render(scene, camera);
 
 			}
