@@ -14,15 +14,17 @@
 				//background-image:url('images/background.jpg');
 			}
 			 #hud {
-				bottom: 10px;
+				top: 10px;
+				margin-right: 400px;
 				position: absolute;
 				right: 10px;
 				z-index: 100;
-				background-color : #ffffff;
-				opacity: 1;
+				//background-color : white;
+				opacity: .5;
 				border : 1px soild black;
-				color : black;
-				font-size : 16px;
+				color : white;
+				text-shadow: 0 0 30px #c61a1a;
+				font-size : 60px;
 				font-style : "Comic Sans MS", cursive, sans-serif;
 				font-weight : bold;
 				padding-right: 5px;
@@ -55,7 +57,9 @@
 			var camera, scene, renderer;
 			var sphere;
 			var car;
+			var Ncar;
 			var speed = 0;
+			var Nspeed = 0;
 			var acceleration = 3;
 			var speedDamping = 1;
 			var maxSpeed = 70;
@@ -70,7 +74,7 @@
 			var bullets = [];
 		var cloc = new  THREE.Clock();
 		var index;
-			
+			var health = 104;
 			init();
 			animate();
 			
@@ -120,10 +124,12 @@
 		e.preventDefault;
 		if (e.which === 1) { // Left click only
 			createBullet(car);
+			//createBullet(Ncar);
 		}
 	});
 				
-				$('body').append('<div id="hud"><p>Speed: <span id="speed">0</span></br>Time: <span id="time">0</span>');
+				$('body').append('<div id="hud"><span id="speed">0</span></br>Health: <span id="health">100</span>');
+				
 				
 				//Geometry
 
@@ -335,34 +341,41 @@
 				car.castShoadow = true;
 				
 				
-				
+				Ncar = new THREE.Mesh(carGeometry, carMaterial);
+				myWorld.setWorldCar();
+				Ncar.position.x = 500;
+				Ncar.position.y = 60;
+				Ncar.position.z = 500;
+				scene.add(Ncar);
+				Ncar.castShoadow = true;
 
 
 				// Lights
 
-				var ambientLight = new THREE.AmbientLight(/*Math.random() * 0x10*/0xFFFF00);
+				var ambientLight = new THREE.AmbientLight(/*Math.random() * 0x10*/0xffffff);
 				ambientLight.castShadow = true;
 				scene.add(ambientLight);
 
-				var directionalLight = new THREE.DirectionalLight(/*Math.random() * 0xffffff*/0xFFFF00);
-				directionalLight.position.x = Math.random() - 0.5;
-				directionalLight.position.y = Math.random() - 0.5;
-				directionalLight.position.z = Math.random() - 0.5;
+				var directionalLight = new THREE.DirectionalLight(/*Math.random() * 0xffffff*/0xffffff);
+				directionalLight.position.x = 5000;
+				directionalLight.position.y = 100;
+				directionalLight.position.z = 5000;
 				directionalLight.position.normalize();
 				directionalLight.castShadow = true;
 				scene.add(directionalLight);
 
-				var directionalLight = new THREE.DirectionalLight(/*Math.random() * 0xffffff*/0xFFFF00);
-				directionalLight.position.x = Math.random() - 0.5;
-				directionalLight.position.y = Math.random() - 0.5;
-				directionalLight.position.z = Math.random() - 0.5;
+				var directionalLight = new THREE.DirectionalLight(/*Math.random() * 0xffffff*/0xffffff);
+				directionalLight.position.x = 1000;
+				directionalLight.position.y = 1000;
+				directionalLight.position.z = 1000;
 				directionalLight.position.normalize();
 				directionalLight.castShadow = true;
 				scene.add(directionalLight);
 				
 				
 
-				renderer = new THREE.CanvasRenderer();
+				//renderer = new THREE.CanvasRenderer();
+				renderer = new THREE.WebGLRenderer();
 				renderer.setSize(window.innerWidth, window.innerHeight);
 
 				container.appendChild(renderer.domElement);
@@ -383,23 +396,23 @@
 			}
 			
 			
-var sphereMaterial = new THREE.MeshBasicMaterial({color: 0x00FF00});
-var sphereGeo = new THREE.SphereGeometry(2,10,10);
+var bulletMaterial = new THREE.MeshBasicMaterial({color: 0x00FF00});
+var bulletGeo = new THREE.SphereGeometry(20,5,10);
 function createBullet(obj) {
 	
-	var sphere = new THREE.Mesh(sphereGeo, sphereMaterial);
-	sphere.position.set(obj.position.x, obj.position.y * 0.8, obj.position.z);
+	var bullet = new THREE.Mesh(bulletGeo, bulletMaterial);
+	bullet.position.set(obj.position.x, obj.position.y, obj.position.z);
 
 	
 		var vector = camera.position.clone();
-		sphere.ray = new THREE.Ray(	obj.position, vector.subSelf(obj.position).normalize() );
+		bullet.ray = new THREE.Ray(	obj.position, vector.subSelf(obj.position).normalize() );
 	
-	sphere.owner = obj;
+	bullet.owner = obj;
 	
-	bullets.push(sphere);
-	scene.add(sphere);
+	bullets.push(bullet);
+	scene.add(bullet);
 	
-	return sphere;
+	return bullet;
 }
 
 			function onWindowResize() {
@@ -416,17 +429,17 @@ function createBullet(obj) {
 
 			}
 			
-			function collision(){
-			var originPoint = car.position.clone();
+			function collision(obj){
+			var originPoint = obj.position.clone();
 
 			//clearText();
 	
-			for (var vertexIndex = 0; vertexIndex < car.geometry.vertices.length; vertexIndex++)
+			for (var vertexIndex = 0; vertexIndex < obj.geometry.vertices.length; vertexIndex++)
 			{		
-				var localVertex = car.geometry.vertices[vertexIndex].clone();
-				var globalVertex = car.matrix.multiplyVector3(localVertex);
+				var localVertex = obj.geometry.vertices[vertexIndex].clone();
+				var globalVertex = obj.matrix.multiplyVector3(localVertex);
 				
-				var directionVector = globalVertex.subSelf( car.position );
+				var directionVector = globalVertex.subSelf( obj.position );
 				
 			
 		
@@ -434,8 +447,15 @@ function createBullet(obj) {
 				var collisionResults = ray.intersectObjects( collidableMeshList );
 			
 				if ( collisionResults.length > 0 && collisionResults[0].distance < directionVector.length() ) {
-					
+					if(obj === car){
 					speed = -10;
+					health--;
+					$('#health').html(health);
+					if(health <= 0)
+					$('#health').html("Finished");
+				}
+				else if(obj === Ncar)
+				Nspeed = -10;
 				}
 				
 				
@@ -451,7 +471,7 @@ function createBullet(obj) {
 			timer = myWorld.worldTime.currentTime.getSeconds();
 			
 			
-			$('#time').html(timer + "s");
+			// $('#time').html(timer + "s");
 			
 			}
 
@@ -459,7 +479,8 @@ function createBullet(obj) {
 
 				requestAnimationFrame(animate);
 				
-				collision();
+				collision(car);
+				collision(Ncar);
 				updateTime();
 				
 				
@@ -482,9 +503,8 @@ function createBullet(obj) {
 			var c = collideMesh.position;
 			var x = Math.abs(v.x), z = Math.abs(v.z);
 				if(bullet.x < c.x + x && bullet.x > c.x - x && bullet.z < c.z + z && bullet.z > c.z - z){
-				collideMesh.position.x = 5000;
-				collideMesh.position.y = 60;
-				collideMesh.position.z = 5000;
+				//renderer.clear( collideMesh );
+				 scene.remove(collideMesh);
 				scene.remove(b);
 				// scene.remove(collideMesh);
 				// delete collidableMeshList[index];
@@ -508,15 +528,12 @@ function createBullet(obj) {
 			d = b.ray.direction;
 			
 			if(checkHit(b.position, b) === true)
-				hit = true;
-				
-				
+				hit = true;			
 				
 				
 			
 			if ( !hit) {
 			b.translateX(bspeed * -(d.x));
-			//bullets[i].translateY(speed * bullets[i].direction.y);
 			b.translateZ(bspeed * -(d.z));
 			
 		
@@ -565,6 +582,38 @@ function createBullet(obj) {
 					
 				}
 				
+				// ==================================NEW ENEMY CAR=================================================s
+				var rotationAngleN = 0.05 * Math.abs(Nspeed / 10);
+				if (rotationAngleN > 0.05)
+					rotationAngleN = 0.05;
+
+				if (timer > 0 && timer <30) {
+					Ncar.rotation.y += rotationAngleN;
+					if (Ncar.rotation.y > 6)
+						Ncar.rotation.y -= 6;
+				}
+
+				if (timer > 30 && timer <60) {
+					Ncar.rotation.y -= rotationAngleN;
+					if (Ncar.rotation.y < 0)
+						Ncar.rotation.y = 6 + Ncar.rotation.y;
+				}
+				if (timer > 0 && timer <55) {
+					Nspeed += acceleration;
+					
+					// myWorld.myCar.speed+=acceleration;
+					//$('#speed').html(speed);
+					
+				}
+				if (timer >= 55 && timer <59) {
+					Nspeed -= acceleration;
+					//$('#speed').html(speed);
+					
+				}
+				
+				
+				
+				
 
 				// update car position
 				var phaseX = 1;
@@ -582,9 +631,37 @@ function createBullet(obj) {
 				car.position.x = computedX;
 				car.position.z = computedZ;
 				
-
 				
-				if (speed > 0)
+				// =========================NEW ENEMY CAR========================================
+				var phaseXN = 1;
+				var phaseYN = 1;
+				var eRN = Ncar.rotation.y;
+
+				var computedXN = (Ncar.position.x + ((Nspeed * Math.cos(eRN)) * phaseXN));
+				var computedZN = (Ncar.position.z - ((Nspeed * Math.sin(eRN)) * phaseYN));
+				
+				// var computedX = (myWorld.myCar.position.x + ((myWorld.myCar.speed++ * Math.cos(eR)) * phaseX));
+				// var computedZ = (myWorld.myCar.position.z - ((myWorld.myCar.speed++ * Math.sin(eR)) * phaseY));
+
+
+				Ncar.position.x = computedXN;
+				Ncar.position.z = computedZN;
+				
+//=======================new car speed==================================
+				
+				if (Nspeed > 0)
+					Nspeed = Nspeed - speedDamping;
+				else
+					Nspeed = 0;
+
+				if (Nspeed > maxSpeed)
+					Nspeed = maxSpeed;
+					
+		//=======================old car speed==================================			
+					
+					
+					
+					if (speed > 0)
 					speed = speed - speedDamping;
 				else
 					speed = 0;
@@ -599,10 +676,15 @@ function createBullet(obj) {
 				 camera.position.x = car.position.x - (Math.cos(eR) * 500 );
 				camera.position.z = car.position.z + (Math.sin(eR) * 500 );
 				
+				// new car camera==============
+				
+				 // camera.position.x = Ncar.position.x - (Math.cos(eRN) * 500 );
+				// camera.position.z = Ncar.position.z + (Math.sin(eRN) * 500 );
+				
 				
 				camera.position.y = cameraYPos;
 				 camera.lookAt(car.position); 
-				//camera.lookAt(cameraTarget);
+				//camera.lookAt(Ncar.position);
 				renderer.shadowMapEnabled = true;
 				renderer.render(scene, camera);
 
