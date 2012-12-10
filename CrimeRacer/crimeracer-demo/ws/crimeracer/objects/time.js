@@ -22,7 +22,7 @@ CrimeRacer.Time.prototype.updateTime = function() {
 		this.currentTime = new Date();
 		
 	this.timer =  this.currentTime.getSeconds() - this.startTime;
-	
+	return this.timer;
 	
 }
 

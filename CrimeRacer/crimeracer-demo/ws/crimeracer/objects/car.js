@@ -8,10 +8,11 @@ CrimeRacer.Car = function() {
 	};
 	
 	this.speed = 0;
-	this.health = 100;
+	this.health = 115;
 	this.maxSpeed = 73;
 	this.rotationalAngle = 0.05;
 	this.acceleration = 0;
+	
 	// default at position 0
 }
 

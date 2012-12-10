@@ -89,10 +89,11 @@
 			var localObject;
 			var cloc = new THREE.Clock();
 			var index;
-			var health = 104;
+			//var health = 104;
 			var hitCount = 0;
 			var loader2 = new THREE.ColladaLoader();
 			var wall;
+			var timer = myWorld.worldTime.currentTime.getSeconds();
 			// init();
 			// animate();
 
@@ -117,7 +118,7 @@
 
 				container.appendChild(info);
 
-				camera = new THREE.OrthographicCamera(window.innerWidth / -2, window.innerWidth / 2, window.innerHeight / 2, window.innerHeight / -2, -2000, 1000);
+				//camera = new THREE.OrthographicCamera(window.innerWidth / -2, window.innerWidth / 2, window.innerHeight / 2, window.innerHeight / -2, -2000, 1000);
 				camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 2, 10000);
 
 				camera.position.set(1500, -1000, 1500);
@@ -154,68 +155,10 @@
 
 				$('body').append('<div id="hud"><span id="speed">0</span></br>Health: <span id="health">100</span>');
 
-				//=====================tree checking===========================
-
-				var tree;
-				//var multiplier = 100;
-				var loader;
-				// for (var i = 0; i < treeNo; i++) {
-				// loader = new THREE.OBJMTLLoader();
-
-				// loader.addEventListener('load', function(event) {
-
-				// tree = event.content;
-				// myWorld.setWorldTreePosition(multiplier);
-
-				// tree.position.y = 0;
-				// tree.position.x = myWorld.myTreePosition.position.x;
-				// tree.position.z = myWorld.myTreePosition.position.z;
-				// tree.rotation.x = -(Math.PI / 2);
-				// tree.scale.set(10, 5, 5);
-				// scene.add(tree);
-				// collidableMeshList2.push(tree);
-
-				// tree.castShadow = true;
-				// //collidableMeshList.push(tree);
-				// multiplier += 500;
-
-				// });
-				// loader.load('obj/Palm_Tree.obj', 'obj/Palm_Tree.mtl');
-
-				// }
-				//console.log(collidableMeshList2);
-				// var multipli = 100;
-
-				// for (var i = 0; i < treeNo; i++) {
-				// loader = new THREE.OBJMTLLoader();
-
-				// loader.addEventListener('load', function(event) {
-
-				// tree = event.content;
-
-				// myWorld.setWorldTreePositionSecond(multipli);
-
-				// tree.position.y = 0;
-				// tree.position.x = myWorld.myTreePosition.position.x;
-				// tree.position.z = myWorld.myTreePosition.position.z;
-				// tree.rotation.x = -(Math.PI / 2);
-				// tree.scale.set(10, 5, 5);
-				// scene.add(tree);
-				// collidableMeshList2.push(tree);
-
-				// tree.castShadow = true;
-				// //collidableMeshList.push(tree);
-				// multipli += 500;
-
-				// });
-				// loader.load('obj/Palm_Tree.obj', 'obj/Palm_Tree.mtl');
-
-				// }
-
 				//Geometry
 				var texture = THREE.ImageUtils.loadTexture("images/wooden.jpg");
-				// texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
-				// texture.repeat.set( .5, .5 );
+				texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+				texture.repeat.set(.5, .5);
 				var geometry = new THREE.CubeGeometry(200, 200, 200);
 				var material = new THREE.MeshLambertMaterial({
 					color : 0xffffff,
@@ -234,34 +177,6 @@
 
 				// Box
 
-				// var multiplie = 100;
-				// for (var i = 0; i < treeNo; i++) {
-				// var texture = THREE.ImageUtils.loadTexture("images/wooden.jpg");
-				// texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
-				// texture.repeat.set(.5, .5);
-				// var boxGeometry = new THREE.CubeGeometry(70, 650, 70);
-				// var boxMaterial = new THREE.MeshLambertMaterial({
-				// // color : 0x5CD715,
-				// shading : THREE.FlatShading,
-				// overdraw : true,
-				// map : texture
-
-				// });
-
-				// box = new THREE.Mesh(boxGeometry, boxMaterial);
-
-				// myWorld.setWorldTreePosition(multiplie);
-				// box.position.x = myWorld.myTreePosition.position.x;
-				// box.position.y = 0;
-				// box.position.z = myWorld.myTreePosition.position.z;
-				// box.castShadow = true;
-				// box.transparent = true;
-				// //box.material.wireframe = true;
-				// collidableMeshList.push(box);
-				// scene.add(box);
-
-				// multiplie += 500;
-				// }
 				// ========================TREE MAKING============================
 				var texture = THREE.ImageUtils.loadTexture("images/wooden.jpg");
 				texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
@@ -289,141 +204,6 @@
 					}
 				}
 
-				// localObject.position.x = 1000;
-				// localObject.position.y = 0;
-				// localObject.position.z = 500;
-				// scene.add(localObject);
-				//=====================================trees Two==================
-
-				// var multiple = 100;
-
-				// for (var i = 0; i < treeNo; i++) {
-				// var texture = THREE.ImageUtils.loadTexture("images/wooden.jpg");
-				// texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
-				// texture.repeat.set(.5, .5);
-				// var boxGeometry = new THREE.CubeGeometry(70, 650, 70);
-				// var boxMaterial = new THREE.MeshLambertMaterial({
-				// // color : 0x5CD715,
-				// shading : THREE.FlatShading,
-				// overdraw : true,
-				// map : texture
-
-				// });
-
-				// box = new THREE.Mesh(boxGeometry, boxMaterial);
-
-				// myWorld.setWorldTreePositionSecond(multiple);
-				// box.position.x = myWorld.myTreePosition.position.x;
-				// box.position.y = 0;
-				// box.position.z = myWorld.myTreePosition.position.z;
-				// box.castShadow = true;
-				// box.transparent = true;
-				// //box.material.wireframe = true;
-				// collidableMeshList.push(box);
-				// scene.add(box);
-
-				// multiple += 500;
-				// }
-
-				//	==================================WALL MAKING=====================================
-				// ===================================WALL MAKING=====================================
-
-				// for (var j = 0; j < 4; j++) {
-
-				// var texture = THREE.ImageUtils.loadTexture("images/stone2.jpg");
-				// texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
-				// texture.repeat.set(1, 1);
-				// if (j == 0 || j == 1) {
-				// var boxGeometry = new THREE.CubeGeometry(100, 500, 100);
-				// var boxMaterial = new THREE.MeshLambertMaterial({
-				// color : 0x8A5719,
-				// shading : THREE.FlatShading,
-				// overdraw : true,
-
-				// map : texture
-
-				// });
-				// }
-				// if (j == 2 || j == 3) {
-				// var boxGeometry = new THREE.CubeGeometry(100, 500, 100);
-				// var boxMaterial = new THREE.MeshLambertMaterial({
-				// color : 0x8A5719,
-				// shading : THREE.FlatShading,
-				// overdraw : true,
-				// map : texture
-
-				// });
-				// }
-
-				// if (j == 0) {
-
-				// for (var i = 0; i < 100; i++) {
-				// wall = "front";
-				// box = new THREE.Mesh(boxGeometry, boxMaterial);
-				// scene.add(box);
-				// collidableMeshList.push(box);
-				// myWorld.setWallFrontBackPosition(wall);
-				// box.position.x = myWorld.myWall.position.x;
-				// box.position.y = myWorld.myWall.position.y;
-				// box.position.z = myWorld.myWall.position.z;
-				// box.castShadow = true;
-				// box.receiveShadow = true;
-
-				// }
-				// }
-
-				// if (j == 1) {
-
-				// for (var i = 0; i < 100; i++) {
-				// wall = "back";
-				// box = new THREE.Mesh(boxGeometry, boxMaterial);
-				// scene.add(box);
-				// collidableMeshList.push(box);
-				// myWorld.setWallFrontBackPosition(wall);
-				// box.position.x = myWorld.myWall.position.x;
-				// box.position.y = myWorld.myWall.position.y;
-				// box.position.z = myWorld.myWall.position.z;
-				// box.castShadow = true;
-				// box.receiveShadow = true;
-
-				// }
-
-				// }
-				// if (j == 2) {
-				// for (var i = 0; i < 100; i++) {
-				// wall = "left";
-				// box = new THREE.Mesh(boxGeometry, boxMaterial);
-				// scene.add(box);
-				// collidableMeshList.push(box);
-				// myWorld.setWallLeftRightPosition();
-				// box.position.x = myWorld.myWallLeft.position.x;
-				// box.position.y = myWorld.myWallLeft.position.y;
-				// box.position.z = myWorld.myWallLeft.position.z;
-				// box.castShadow = true;
-				// box.receiveShadow = true;
-
-				// }
-
-				// }
-
-				// if (j == 3) {
-				// for (var i = 0; i < 100; i++) {
-
-				// box = new THREE.Mesh(boxGeometry, boxMaterial);
-				// scene.add(box);
-				// collidableMeshList.push(box);
-				// myWorld.setWallLeftRightPosition();
-				// box.position.x = myWorld.myWallRight.position.x;
-				// box.position.y = myWorld.myWallRight.position.y;
-				// box.position.z = myWorld.myWallRight.position.z;
-				// box.castShadow = true;
-				// box.receiveShadow = true;
-
-				// }
-
-				// }
-				// }
-
 				// ========================wall=================================
 				var texture = THREE.ImageUtils.loadTexture("images/stone2.jpg");
 				texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
@@ -436,7 +216,7 @@
 					map : texture
 
 				});
-				for (var k = 1; k <= myWorld.noOfSide(); k++) {
+				for (var k = 1; k <= myWorld.noOfWallSide(); k++) {
 
 					for (var i = 0; i < myWorld.noOfBlockPerBoundryWall(); i++) {
 
@@ -452,19 +232,6 @@
 
 					}
 				}
-				// object1 = PinaCollada('tree', 1);
-				//scene.add(object1);
-				// localObject.rotation.x = -(Math.PI / 2);
-				// collidableMeshList3.push(localObject);
-				// scene.add(localObject);
-				// console.log(localObject.position.x);
-
-				// Cubes
-
-				// mycar = new CrimeRacer.Car;
-				// eneCar = new CrimeRacer.enemyCar;
-				//mycar.move(1, 0, 0);
-				//console.log(mycar.position.x);
 
 				var carGeometry = new THREE.CubeGeometry(100, 100, 100);
 				var carMaterial = new THREE.MeshLambertMaterial({
@@ -544,12 +311,7 @@
 
 				window.addEventListener('resize', onWindowResize, false);
 
-				//mycar = new CrimeRacer.Car;
-				//mycar.move(1, 0, 0);
-
 			}
-
-			//console.log("dwadaw"+localObject.position.x);
 
 			var bulletMaterial = new THREE.MeshBasicMaterial({
 				color : 0x00FF00
@@ -602,13 +364,14 @@
 					if (collisionResults.length > 0 && collisionResults[0].distance < directionVector.length()) {
 						if (obj === car) {
 							speed = -10;
-							health--;
+							//health--;
 
-							$('#health').html(health);
-							if (health <= 0)
+							$('#health').html(myWorld.healthControl("car", "wall"));
+							if (myWorld.healthControl("car", "wall") <= 0)
 								$('#health').html("Finished");
 						} else if (obj === Ncar)
-							Nspeed = -10;
+							Nspeed = myWorld.setEnemyCarSpeed(timer, true);
+						//Nspeed = -10;
 					}
 
 				}
@@ -629,7 +392,7 @@
 
 				collision(car, collidableMeshList);
 				collision(Ncar, collidableMeshList);
-				
+				//collision(car, Ncar);
 
 				updateTime();
 
@@ -652,23 +415,7 @@
 					var c = collideMesh.position;
 					var x = Math.abs(v.x), z = Math.abs(v.z);
 					if (bullet.x < c.x + x && bullet.x > c.x - x && bullet.z < c.z + z && bullet.z > c.z - z) {
-					
-						
-					// var planeGeometry = new THREE.CubeGeometry(20, 20, 20);
-					// var planeMaterial = new THREE.MeshLambertMaterial({
-					// color : 0xFF0000,
-					// shading : THREE.FlatShading,
-					// overdraw : true,
-					// //map : texture
-				// });
-					// var plane = new THREE.Mesh(planeGeometry, planeMaterial);
-					// plane.position.x = collideMesh.position.x - 50;
-					// plane.position.y = collideMesh.position.y;
-					// plane.position.z = collideMesh.position.z - 70;
-					// plane.rotation.x = - (Math.PI / 2);
-					// //collideMesh.material.wireframe = true;
-					// //scene.remove(collideMesh);
-					// scene.add(plane);
+
 						return true;
 					}
 				}
@@ -689,6 +436,7 @@
 
 					if (checkHit(b.position) === true) {
 						hit = true;
+						bullets.splice(i, 1);
 						scene.remove(b);
 					}
 
@@ -742,35 +490,6 @@
 				}
 
 				// ==================================NEW ENEMY CAR=================================================s
-				var rotationAngleN = 0.05 * Math.abs(Nspeed / 10);//myWorld.getEnemyCarRotaion();
-				//console.log("rotationAngleN" + rotationAngleN);
-				if (rotationAngleN > 0.05)
-					rotationAngleN = 0.05;
-
-				if (timer > 0 && timer < 30) {
-					Ncar.rotation.y += rotationAngleN;
-					if (Ncar.rotation.y > 6)
-						Ncar.rotation.y -= 6;
-				}
-
-				if (timer > 30 && timer < 60) {
-					Ncar.rotation.y -= rotationAngleN;
-					if (Ncar.rotation.y < 0)
-						Ncar.rotation.y = 6 + Ncar.rotation.y;
-				}
-				if (timer > 0 && timer < 55) {
-				//myWorld.setEnemyCarSpeed();
-					Nspeed += acceleration;
-
-					// myWorld.myCar.speed+=acceleration;
-					//$('#speed').html(speed);
-
-				}
-				if (timer >= 55 && timer < 59) {
-					Nspeed -= acceleration;
-					//$('#speed').html(speed);
-
-				}
 
 				// update car position
 				var phaseX = 1;
@@ -788,19 +507,13 @@
 				car.position.z = computedZ;
 
 				// =========================NEW ENEMY CAR========================================
-				var phaseXN = 1;
-				var phaseYN = 1;
+
+				Ncar.rotation.y = myWorld.setEnemyCarRotation(timer, Ncar.rotation.y);
+
 				var eRN = Ncar.rotation.y;
 
-				var computedXN = (Ncar.position.x + ((Nspeed * Math.cos(eRN)) * phaseXN));
-				var computedZN = (Ncar.position.z - ((Nspeed * Math.sin(eRN)) * phaseYN));
-
-				// var computedX = (myWorld.myCar.position.x + ((myWorld.myCar.speed++ * Math.cos(eR)) * phaseX));
-				// var computedZ = (myWorld.myCar.position.z - ((myWorld.myCar.speed++ * Math.sin(eR)) * phaseY));
-
-				Ncar.position.x = computedXN;
-				Ncar.position.z = computedZN;
-
+				Ncar.position.x = myWorld.setEnemyCarNewPositionX(myWorld.setEnemyCarSpeed(timer, false), eRN, Ncar.position.x);
+				Ncar.position.z = myWorld.setEnemyCarNewPositionZ(myWorld.setEnemyCarSpeed(timer, false), eRN, Ncar.position.z);
 				//=======================new car speed==================================
 
 				if (Nspeed > 0)
