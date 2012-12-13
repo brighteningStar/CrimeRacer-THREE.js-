@@ -70,7 +70,8 @@
 			var camera, scene, renderer;
 			var sphere;
 			var car;
-			var Ncar;
+			var Ncar ;
+			var enemyCarr = [];
 			var speed = 0;
 			var Nspeed = 0;
 			var acceleration = 3;
@@ -89,7 +90,7 @@
 			var bullets = [];
 			var localObject;
 			var cloc = new THREE.Clock();
-			var index;
+			var index = 0;
 			//var health = 104;
 			var hitCount = 0;
 			var loader2 = new THREE.ColladaLoader();
@@ -250,15 +251,19 @@
 				scene.add(car);
 				car.castShoadow = true;
 				car.receiveShadow = true;
-
+				
+				for(var k = 1; k <= myWorld.noOfEnemies(); k++){
+				
 				Ncar = new THREE.Mesh(carGeometry, carMaterial);
-				myWorld.setWorldEnemyCar();
+				myWorld.setWorldEnemyCar(k);
 				Ncar.position.x = myWorld.enemyCar.position.x;
 				Ncar.position.y = myWorld.enemyCar.position.y;
 				Ncar.position.z = myWorld.enemyCar.position.z;
 				scene.add(Ncar);
 				Ncar.castShoadow = true;
 				collidableMeshList.push(Ncar);
+				enemyCarr.push(Ncar);
+				}
 
 				// Lights
 
@@ -348,7 +353,7 @@
 
 			}
 
-			function collision(obj, obj2) {
+			function collision(obj, obj2, index) {
 				var originPoint = obj.position.clone();
 
 				//clearText();
@@ -371,8 +376,10 @@
 							$('#health').html(myWorld.healthControl("car", "wall"));
 							if (myWorld.healthControl("car", "wall") <= 0)
 								$('#health').html("Finished");
-						} else if (obj === Ncar)
-							Nspeed = myWorld.setEnemyCarSpeed(timer, true);
+						} else if (obj != car)
+							Nspeed = myWorld.setEnemyCarSpeed(timer, true, index);
+							//scene.remove(enemyCarr[3]);
+							console.log("Nspeed " + Nspeed + "index" + index);
 						//Nspeed = -10;
 					}
 
@@ -387,13 +394,27 @@
 				// $('#time').html(timer + "s");
 
 			}
+			
+			function setIndex() {
+
+				index++;
+				if(index >= 3)
+					index = 0;
+
+				// $('#time').html(timer + "s");
+
+			}
 
 			function animate() {
 
 				requestAnimationFrame(animate);
 
 				collision(car, collidableMeshList);
-				collision(Ncar, collidableMeshList);
+				// console.log(index);
+				// var carr = enemyCarr[index];
+				// collision(carr, collidableMeshList, index);
+				// setIndex();
+				
 				//collision(car, Ncar);
 
 				updateTime();
@@ -426,7 +447,15 @@
 			}
 
 			function render() {
-
+				
+				
+				for(var j = enemyCarr.length-1; j>=0; j--){
+				console.log(j);
+				var enemy = enemyCarr[j];
+				collision(enemy, collidableMeshList, j);
+					
+					//scene.remove(enemy);
+				}
 				var delta = cloc.getDelta();
 
 				var bspeed = delta * 3000;
@@ -516,13 +545,25 @@
 				car.position.z = computedZ;
 
 				// =========================NEW ENEMY CAR========================================
+				for(var k = 0 ; k < myWorld.noOfEnemies() ; k++ ){
+			//	console.log(myWorld.noOfEnemies() + "  " + k);
+				enemyCarr[k].rotation.y = myWorld.setEnemyCarRotation(timer, enemyCarr[k].rotation.y,k);
 
-				Ncar.rotation.y = myWorld.setEnemyCarRotation(timer, Ncar.rotation.y);
+				var eRN = enemyCarr[k].rotation.y;
 
-				var eRN = Ncar.rotation.y;
+				enemyCarr[k].position.x = myWorld.setEnemyCarNewPositionX(myWorld.setEnemyCarSpeed(timer, false, k), eRN, enemyCarr[k].position.x, k);
+				enemyCarr[k].position.z = myWorld.setEnemyCarNewPositionZ(myWorld.setEnemyCarSpeed(timer, false,k), eRN, enemyCarr[k].position.z,k);
+				
+				if(k > 3)
+					k = 1;
+				// enemyCarr[1].rotation.y = myWorld.setEnemyCarRotation(timer, enemyCarr[1].rotation.y, 1);
 
-				Ncar.position.x = myWorld.setEnemyCarNewPositionX(myWorld.setEnemyCarSpeed(timer, false), eRN, Ncar.position.x);
-				Ncar.position.z = myWorld.setEnemyCarNewPositionZ(myWorld.setEnemyCarSpeed(timer, false), eRN, Ncar.position.z);
+				// var eRN = enemyCarr[1].rotation.y;
+
+				// enemyCarr[1].position.x = myWorld.setEnemyCarNewPositionX(myWorld.setEnemyCarSpeed(timer, false, 1), eRN, enemyCarr[1].position.x, 1);
+				// enemyCarr[1].position.z = myWorld.setEnemyCarNewPositionZ(myWorld.setEnemyCarSpeed(timer, false, 1), eRN, enemyCarr[1].position.z, 1);
+				}
+				
 				//=======================new car speed==================================
 
 				// if (Nspeed > 0)

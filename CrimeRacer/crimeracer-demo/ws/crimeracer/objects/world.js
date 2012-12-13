@@ -7,13 +7,19 @@ CrimeRacer.World = function() {
 	this.noOfSides = 4;
 	this.noOfBlocksPerWall = 100;
 	this.carSpeedCkeck;
-	this.noOfEnemy = 4;
-	//this.enemy = [];
+	this.noOfEnemy = 3;
 	
-	// for(var i = 0; i < this.noOfEnemy; i++){
-		// this.enemyCar = new CrimeRacer.enemyCar;
-		// this.enemy.push(this.enemyCar);
-	// }
+	
+	this.enemy = {
+		enemyCar1 : new CrimeRacer.enemyCar,
+		enemyCar2 : new CrimeRacer.enemyCar,
+		enemyCar3 : new CrimeRacer.enemyCar 
+	};
+	
+	 //for(var i = 0; i < this.noOfEnemy; i++){
+		 //this.enemyCar = new CrimeRacer.enemyCar ;
+	//	 this.enemy.push(this.enemyCar);
+	//}
 	this.myWall = new CrimeRacer.Wall;
 	this.myMidWayPosition = new CrimeRacer.MidWay;
 	this.worldTime = new CrimeRacer.Time;
@@ -67,6 +73,11 @@ CrimeRacer.World = function() {
 CrimeRacer.World.prototype.noOfTress = function() {
 
 	return this.noOfTrees;
+}
+
+CrimeRacer.World.prototype.noOfEnemies = function() {
+
+	return this.noOfEnemy;
 }
 
 CrimeRacer.World.prototype.noOfBlockPerBoundryWall = function() {
@@ -132,9 +143,20 @@ CrimeRacer.World.prototype.setWorldCar = function() {
 
 }
 
-CrimeRacer.World.prototype.setWorldEnemyCar = function() {
-
-	this.enemyCar.setPos(1000, 60, 1000);
+CrimeRacer.World.prototype.setWorldEnemyCar = function(EnemyCarId) {
+	
+	if(EnemyCarId == 1){
+		this.enemyCar = this.enemy.enemyCar1;
+		this.enemyCar.setPos(1000, 60, -1000);
+	}
+	if(EnemyCarId == 2){
+		this.enemyCar = this.enemy.enemyCar2;
+		this.enemyCar.setPos(2000, 60, 1000);
+	}
+	if(EnemyCarId == 3){
+		this.enemyCar = this.enemy.enemyCar3;
+		this.enemyCar.setPos(-3000, 60, 1000);
+	}
 
 }
 
@@ -144,8 +166,21 @@ CrimeRacer.World.prototype.getEnemyCarRotaion = function() {
 	return this.rotationAngle;
 }
 
-CrimeRacer.World.prototype.setEnemyCarSpeed = function(timer, hit) {
+CrimeRacer.World.prototype.setEnemyCarSpeed = function(timer, hit, id) {
 
+	if(id == 0){
+		this.enemyCar = this.enemy.enemyCar1;
+		
+		}
+	if (id == 1){
+		this.enemyCar = this.enemy.enemyCar2;
+		
+	}
+	if (id == 2){
+		this.enemyCar = this.enemy.enemyCar3;
+		
+		
+	}
 	if (hit === false) {
 		if (timer > 0 && timer < 55) {
 
@@ -160,6 +195,7 @@ CrimeRacer.World.prototype.setEnemyCarSpeed = function(timer, hit) {
 		}
 	} else if (hit === true) {
 		
+		console.log("ID " + id);
 		this.carSpeedCkeck = this.enemyCar.carHit();
 		
 	}
@@ -168,8 +204,19 @@ CrimeRacer.World.prototype.setEnemyCarSpeed = function(timer, hit) {
 
 }
 
-CrimeRacer.World.prototype.setEnemyCarRotation = function(timer, rotation) {
-
+CrimeRacer.World.prototype.setEnemyCarRotation = function(timer, rotation, id) {
+	if(id == 0){
+		this.enemyCar = this.enemy.enemyCar1;
+		
+		}
+	if (id == 1){
+		this.enemyCar = this.enemy.enemyCar2;
+		
+	}
+	if (id == 2){
+		this.enemyCar = this.enemy.enemyCar3;
+		}
+		
 	this.enemyCar.rotationalAngle = 0.05 * Math.abs(this.enemyCar.speed / 10);
 	if (this.enemyCar.rotationalAngle > 0.05)
 		this.enemyCar.rotationalAngle = 0.05;
@@ -193,15 +240,39 @@ CrimeRacer.World.prototype.setEnemyCarRotation = function(timer, rotation) {
 
 }
 
-CrimeRacer.World.prototype.setEnemyCarNewPositionX = function(Speed, rotation, xPosition) {
+CrimeRacer.World.prototype.setEnemyCarNewPositionX = function(Speed, rotation, xPosition, id) {
 
 	//console.log("spped" + speed);
+	if(id == 0){
+		this.enemyCar = this.enemy.enemyCar1;
+		
+		}
+	if (id == 1){
+		this.enemyCar = this.enemy.enemyCar2;
+		
+	}
+	if (id == 2){
+		this.enemyCar = this.enemy.enemyCar3;
+		}
+	
 	newXPosition = (xPosition + (this.enemyCar.speed * Math.cos(rotation)) * this.enemyCar.phaseX);
 	return newXPosition;
 
 }
 
-CrimeRacer.World.prototype.setEnemyCarNewPositionZ = function(Speed, rotation, zPosition) {
+CrimeRacer.World.prototype.setEnemyCarNewPositionZ = function(Speed, rotation, zPosition, id) {
+
+	if(id == 0){
+		this.enemyCar = this.enemy.enemyCar1;
+		
+		}
+	if (id == 1){
+		this.enemyCar = this.enemy.enemyCar2;
+		
+	}
+	if (id == 2){
+		this.enemyCar = this.enemy.enemyCar3;
+		}
 
 	newZPosition = (zPosition - (this.enemyCar.speed * Math.sin(rotation)) * this.enemyCar.phaseY);
 	return newZPosition;

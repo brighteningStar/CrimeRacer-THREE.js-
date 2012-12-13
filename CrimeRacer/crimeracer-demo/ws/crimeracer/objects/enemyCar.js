@@ -2,7 +2,7 @@ var CrimeRacer = CrimeRacer || {};
 
 CrimeRacer.enemyCar = function() {
 	this.position = {
-		x : 500,
+		x : 2000,
 		y : 0,
 		z : 500
 	};
