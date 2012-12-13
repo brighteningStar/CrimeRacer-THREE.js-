@@ -11,8 +11,9 @@ CrimeRacer.Car = function() {
 	this.health = 115;
 	this.maxSpeed = 73;
 	this.rotationalAngle = 0.05;
-	this.acceleration = 0;
-	
+	this.acceleration = 3;
+	this.hitSpeed = -10;
+	this.backSpeed = -3;
 	// default at position 0
 }
 
@@ -34,11 +35,42 @@ CrimeRacer.Car.prototype.getSpeed = function() {
 	return this.speed;
 }
 
+CrimeRacer.Car.prototype.moveForward = function() {
+	
+	if(this.speed >= this.maxSpeed)
+		return this.speed = this.maxSpeed;
+	return this.speed += this.acceleration;
+	// if(this.speed >= this.maxSpeed)
+		// this.speed = this.maxSpeed;
+		
+	//return this.acceleration;
+}
+
+CrimeRacer.Car.prototype.speedDecrease = function() {
+	
+	
+	return this.speed = -1 
+	// if(this.speed >= this.maxSpeed)
+		// this.speed = this.maxSpeed;
+		
+	//return this.acceleration;
+}
+
+CrimeRacer.Car.prototype.moveBackword = function() {
+	
+	if(this.speed < 0)
+		return this.speed = this.backSpeed;
+	return this.speed -= this.acceleration;
+}
+
 CrimeRacer.Car.prototype.getMaxSpeed = function() {
 	
 	return this.maxSpeed;
 }
+CrimeRacer.Car.prototype.carHit = function() {
 
+	return this.speed = this.hitSpeed;
+}
 CrimeRacer.Car.prototype.getHealth = function() {
 	
 	return this.health;

@@ -79,6 +79,7 @@
 			var cameraYPos = 500;
 			var mycar;
 			var eneCar;
+			var carHit = false;
 			var box;
 			var textu;
 			var myWorld = new CrimeRacer.World;
@@ -363,7 +364,8 @@
 
 					if (collisionResults.length > 0 && collisionResults[0].distance < directionVector.length()) {
 						if (obj === car) {
-							speed = -10;
+							//speed = -10;
+							speed = myWorld.CarMove("W", true);
 							//health--;
 
 							$('#health').html(myWorld.healthControl("car", "wall"));
@@ -463,14 +465,17 @@
 						car.rotation.y = 6 + car.rotation.y;
 				}
 				if (keyboard.pressed("W")) {
-					speed += acceleration;
-
-					// myWorld.myCar.speed+=acceleration;
+					//speed += acceleration;
+					
+						speed = myWorld.CarMove("W", false);
+					
 					$('#speed').html(speed);
 
 				}
 				if (keyboard.pressed("S")) {
-					speed -= acceleration;
+					//speed -= acceleration;
+					
+					speed = myWorld.CarMove("S", false);
 					$('#speed').html(speed);
 
 				}
@@ -480,11 +485,15 @@
 				if (keyboard.pressed("down")) {
 					cameraYPos -= cameraYPos <= 0 ? 0 : 10;
 				}
+				
+				
 
 				if (!keyboard.pressed("W") && !keyboard.pressed("S")) {
 					speed -= 1;
 					if (speed == -1)
 						speed = 0;
+						
+						
 					$('#speed').html(speed);
 
 				}
@@ -516,13 +525,13 @@
 				Ncar.position.z = myWorld.setEnemyCarNewPositionZ(myWorld.setEnemyCarSpeed(timer, false), eRN, Ncar.position.z);
 				//=======================new car speed==================================
 
-				if (Nspeed > 0)
-					Nspeed = Nspeed - speedDamping;
-				else
-					Nspeed = 0;
+				// if (Nspeed > 0)
+					// Nspeed = Nspeed - speedDamping;
+				// else
+					// Nspeed = 0;
 
-				if (Nspeed > maxSpeed)
-					Nspeed = maxSpeed;
+				// if (Nspeed > maxSpeed)
+					// Nspeed = maxSpeed;
 
 				//=======================old car speed==================================
 

@@ -9,11 +9,11 @@ CrimeRacer.enemyCar = function() {
 
 	this.speed = 0;
 	this.health = 100;
-	this.maxSpeed = 73;
+	this.maxSpeed = 50;
 	this.rotationalAngle = 0.05;
 	this.acceleration = 3;
 	this.backAccelearation = 1500;
-
+	this.speedAfterHit = -10;
 	this.phaseX = 1;
 	this.phaseY = 1;
 	// default at position 0
@@ -41,9 +41,28 @@ CrimeRacer.enemyCar.prototype.move = function(dX, dY, dZ) {
 	this.position.z += dZ;
 }
 
+CrimeRacer.enemyCar.prototype.moveForward = function() {
+
+	this.speed += this.acceleration;
+	if(this.speed >= this.maxSpeed)
+		this.speed = this.maxSpeed;
+		
+	return this.speed;
+}
+
+CrimeRacer.enemyCar.prototype.moveBackword = function() {
+
+	return this.speed -= this.acceleration;
+}
+
 CrimeRacer.enemyCar.prototype.getSpeed = function() {
 
 	return this.speed;
+}
+
+CrimeRacer.enemyCar.prototype.carHit = function() {
+
+	return this.speed = this.speedAfterHit;
 }
 
 CrimeRacer.enemyCar.prototype.setSpeedHigh = function() {

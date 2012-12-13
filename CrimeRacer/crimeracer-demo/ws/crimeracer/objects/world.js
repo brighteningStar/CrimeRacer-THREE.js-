@@ -6,8 +6,14 @@ CrimeRacer.World = function() {
 	this.noOfSideForTree = 2;
 	this.noOfSides = 4;
 	this.noOfBlocksPerWall = 100;
-
-	this.enemyCar = new CrimeRacer.enemyCar;
+	this.carSpeedCkeck;
+	this.noOfEnemy = 4;
+	//this.enemy = [];
+	
+	// for(var i = 0; i < this.noOfEnemy; i++){
+		// this.enemyCar = new CrimeRacer.enemyCar;
+		// this.enemy.push(this.enemyCar);
+	// }
 	this.myWall = new CrimeRacer.Wall;
 	this.myMidWayPosition = new CrimeRacer.MidWay;
 	this.worldTime = new CrimeRacer.Time;
@@ -50,6 +56,12 @@ CrimeRacer.World = function() {
 		y : 80,
 		z : -1700,
 		id : 2
+	};
+
+	this.enemyCarPos = {
+		x : -1000,
+		y : 60,
+		z : 1000
 	};
 }
 CrimeRacer.World.prototype.noOfTress = function() {
@@ -136,22 +148,23 @@ CrimeRacer.World.prototype.setEnemyCarSpeed = function(timer, hit) {
 
 	if (hit === false) {
 		if (timer > 0 && timer < 55) {
-			this.enemyCar.speed += this.enemyCar.acceleration;
 
-			if (this.enemyCar.speed >= this.enemyCar.maxSpeed)
-				this.enemyCar.speed = this.enemyCar.maxSpeed;
-			return this.enemyCar.speed;
+			this.carSpeedCkeck = this.enemyCar.moveForward();
+
 		}
 
 		if (timer >= 55 && timer <= 59) {
 
-			this.enemyCar.speed -= this.enemyCar.acceleration;
-			return this.enemyCar.speed;
+			this.carSpeedCkeck = this.enemyCar.moveBackword();
+
 		}
 	} else if (hit === true) {
-		this.enemyCar.speed = -10;
-		return this.enemyCar.speed;
+		
+		this.carSpeedCkeck = this.enemyCar.carHit();
+		
 	}
+	
+	return this.carSpeedCkeck;
 
 }
 
@@ -180,10 +193,9 @@ CrimeRacer.World.prototype.setEnemyCarRotation = function(timer, rotation) {
 
 }
 
-
 CrimeRacer.World.prototype.setEnemyCarNewPositionX = function(Speed, rotation, xPosition) {
-	
-	console.log("spped" + speed);
+
+	//console.log("spped" + speed);
 	newXPosition = (xPosition + (this.enemyCar.speed * Math.cos(rotation)) * this.enemyCar.phaseX);
 	return newXPosition;
 
@@ -198,10 +210,39 @@ CrimeRacer.World.prototype.setEnemyCarNewPositionZ = function(Speed, rotation, z
 
 CrimeRacer.World.prototype.healthControl = function(obj1, obj2) {
 
-	if(obj1 === "car" && (obj2 === "tree" || obj2 === "wall")){
-		
-		this.myCar.health --;
+	if (obj1 === "car" && (obj2 === "tree" || obj2 === "wall")) {
+
+		this.myCar.health--;
 		return this.myCar.health;
+	}
+
+}
+
+
+CrimeRacer.World.prototype.CarMove = function(key, hit) {
+
+	if (hit === false) {
+		if (key === "W" ) {
+
+			return this.myCar.moveForward();
+			
+
+		}
+
+		if (key === "S") {
+
+			return this.myCar.moveBackword();
+
+		}
+		if (key != "S" && key != "w") {
+
+			return this.myCar.speedDecrease();
+
+		}
+	} else if (hit === true) {
+		
+		return this.myCar.carHit();
+		
 	}
 
 }
