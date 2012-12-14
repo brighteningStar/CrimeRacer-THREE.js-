@@ -266,7 +266,6 @@
 					scene.add(Ncar);
 					Ncar.castShoadow = true;
 					Ncar.lastShot = Date.now();
-					//collidableMeshList.push(Ncar);
 					enemyCarr.push(Ncar);
 				}
 
@@ -290,20 +289,6 @@
 				directionalLight.shadowMapWidth = 1024;
 				directionalLight.shadowMapHeight = 1024;
 				scene.add(directionalLight);
-
-				spotLight = new THREE.SpotLight(0x1a4d06, 1000, 0, 1000);
-				spotLight.position.set(1000, 100, 2500);
-				spotLight.target.position.set(car.position);
-				spotLight.castShadow = true;
-
-				spotLight.shadowCameraNear = 100;
-				spotLight.shadowCameraFar = camera.far;
-				spotLight.shadowCameraFov = 50;
-				spotLight.shadowBias = -0.00125;
-				spotLight.shadowDarkness = 0.5;
-				spotLight.shadowMapWidth = 1024;
-				spotLight.shadowMapHeight = 1024;
-				scene.add(spotLight);
 
 				//renderer = new THREE.CanvasRenderer();
 				renderer = new THREE.WebGLRenderer();
@@ -352,7 +337,7 @@
 				bullets.push(bullet);
 				scene.add(bullet);
 
-				return obj;
+				return bullet;
 
 			}
 
@@ -408,26 +393,13 @@
 
 			}
 
-			function setIndex() {
-
-				index++;
-				if (index >= 3)
-					index = 0;
-
-				// $('#time').html(timer + "s");
-
-			}
+			
 
 			function animate() {
 
 				requestAnimationFrame(animate);
 
 				collision(car, collidableMeshList);
-				// console.log(index);
-				// var carr = enemyCarr[index];
-				// collision(carr, collidableMesh, index);
-				// setIndex();
-
 				collision(car, enemyCarr);
 				//collision(Ncar, collidableMesh);
 
@@ -463,7 +435,7 @@
 			function render() {
 
 				for (var j = enemyCarr.length - 1; j >= 0; j--) {
-					console.log(j);
+
 					enemy = enemyCarr[j];
 					collision(enemy, collidableMeshList, j);
 					collision(enemy, collidableMesh, j);
@@ -474,7 +446,7 @@
 						object = createBullet(enemy, car);
 						enemy.lastShot = Date.now();
 					}
-					console.log("Distance " + dist + " enemy Car " + j);
+
 					//scene.remove(enemy);
 				}
 				var delta = cloc.getDelta();
@@ -491,21 +463,43 @@
 						bullets.splice(i, 1);
 						scene.remove(b);
 					}
-					if (object == car) {
-						if (!hit) {
-							//b.rotation.x = Math.PI / 2;
-							b.translateX(bspeed * -(d.x));
-							b.translateZ(bspeed * -(d.z));
 
-						}
-					} else {
-						if (!hit) {
-							//b.rotation.x = Math.PI / 2;
-							b.translateX(bspeed * (d.x));
-							b.translateZ(bspeed * (d.z));
+					if (!hit && b.owner != car) {
+						//b.rotation.x = Math.PI / 2;
+						b.translateX(bspeed * (d.x));
+						b.translateZ(bspeed * (d.z));
 
-						}
 					}
+
+					if (!hit && b.owner == car) {
+						//b.rotation.x = Math.PI / 2;
+						b.translateX(bspeed * -(d.x));
+						b.translateZ(bspeed * -(d.z));
+
+					}
+					dist = distance(b.position.x, b.position.z, car.position.x, car.position.z);
+					if (dist < 150 && b.owner != car) {
+						//speed = myWorld.CarMove("W", true);
+						bullets.splice(i, 1);
+						scene.remove(b);
+
+					}
+
+					for (var j = enemyCarr.length - 1; j >= 0; j--) {
+
+						enemy = enemyCarr[j];
+
+						var dist = distance(enemy.position.x, enemy.position.z, b.position.x, b.position.z);
+
+						if (dist < 150 && b.owner == car) {
+							bullets.splice(i, 1);
+							scene.remove(b);
+							//Nspeed = myWorld.setEnemyCarSpeed(timer, true, j);
+						}
+
+						//scene.remove(enemy);
+					}
+
 				}
 				var rotationAngle = 0.05 * Math.abs(speed / 10);
 				if (rotationAngle > 0.05)
@@ -581,16 +575,6 @@
 						k = 1;
 
 				}
-
-				//=======================new car speed==================================
-
-				// if (Nspeed > 0)
-				// Nspeed = Nspeed - speedDamping;
-				// else
-				// Nspeed = 0;
-
-				// if (Nspeed > maxSpeed)
-				// Nspeed = maxSpeed;
 
 				//=======================old car speed==================================
 

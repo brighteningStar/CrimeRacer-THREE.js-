@@ -146,7 +146,7 @@ CrimeRacer.World.prototype.setWorldEnemyCar = function(EnemyCarId) {
 
 	if (EnemyCarId == 1) {
 		this.enemyCar = this.enemy.enemyCar1;
-		this.enemyCar.setPos(1000, 60, -1000);
+		this.enemyCar.setPos(-1000, 60, -1000);
 	}
 	if (EnemyCarId == 2) {
 		this.enemyCar = this.enemy.enemyCar2;
