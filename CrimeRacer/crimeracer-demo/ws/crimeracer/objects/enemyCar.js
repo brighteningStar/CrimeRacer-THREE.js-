@@ -44,9 +44,9 @@ CrimeRacer.enemyCar.prototype.move = function(dX, dY, dZ) {
 CrimeRacer.enemyCar.prototype.moveForward = function() {
 
 	this.speed += this.acceleration;
-	if(this.speed >= this.maxSpeed)
+	if (this.speed >= this.maxSpeed)
 		this.speed = this.maxSpeed;
-		
+
 	return this.speed;
 }
 

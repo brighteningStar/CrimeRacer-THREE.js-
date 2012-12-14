@@ -70,7 +70,7 @@
 			var camera, scene, renderer;
 			var sphere;
 			var car;
-			var Ncar ;
+			var Ncar;
 			var enemyCarr = [];
 			var speed = 0;
 			var Nspeed = 0;
@@ -80,6 +80,7 @@
 			var cameraYPos = 500;
 			var mycar;
 			var eneCar;
+			var object;
 			var carHit = false;
 			var box;
 			var textu;
@@ -87,10 +88,12 @@
 			var distance1 = 0;
 			var collideMesh;
 			var collidableMeshList = [];
+			var collidableMesh = [];
 			var bullets = [];
 			var localObject;
 			var cloc = new THREE.Clock();
 			var index = 0;
+			var enemy;
 			//var health = 104;
 			var hitCount = 0;
 			var loader2 = new THREE.ColladaLoader();
@@ -149,7 +152,7 @@
 				$(document).click(function(e) {
 					e.preventDefault
 					if (e.which === 1) {// Left click only
-						createBullet(car);
+						object = createBullet();
 
 					}
 
@@ -248,21 +251,23 @@
 				car.position.x = myWorld.myCar.position.x;
 				car.position.y = myWorld.myCar.position.y;
 				car.position.z = myWorld.myCar.position.z;
-				scene.add(car);
 				car.castShoadow = true;
 				car.receiveShadow = true;
-				
-				for(var k = 1; k <= myWorld.noOfEnemies(); k++){
-				
-				Ncar = new THREE.Mesh(carGeometry, carMaterial);
-				myWorld.setWorldEnemyCar(k);
-				Ncar.position.x = myWorld.enemyCar.position.x;
-				Ncar.position.y = myWorld.enemyCar.position.y;
-				Ncar.position.z = myWorld.enemyCar.position.z;
-				scene.add(Ncar);
-				Ncar.castShoadow = true;
-				collidableMeshList.push(Ncar);
-				enemyCarr.push(Ncar);
+				collidableMesh.push(car);
+				scene.add(car);
+
+				for (var k = 1; k <= myWorld.noOfEnemies(); k++) {
+
+					Ncar = new THREE.Mesh(carGeometry, carMaterial);
+					myWorld.setWorldEnemyCar(k);
+					Ncar.position.x = myWorld.enemyCar.position.x;
+					Ncar.position.y = myWorld.enemyCar.position.y;
+					Ncar.position.z = myWorld.enemyCar.position.z;
+					scene.add(Ncar);
+					Ncar.castShoadow = true;
+					Ncar.lastShot = Date.now();
+					//collidableMeshList.push(Ncar);
+					enemyCarr.push(Ncar);
 				}
 
 				// Lights
@@ -323,20 +328,32 @@
 				color : 0x00FF00
 			});
 			var bulletGeo = new THREE.SphereGeometry(20, 20, 20);
-			function createBullet(obj) {
+			function createBullet(obj, obj2) {
+
+				if (obj === undefined) {
+					obj = car;
+					obj2 = enemy;
+				}
 
 				var bullet = new THREE.Mesh(bulletGeo, bulletMaterial);
-				bullet.position.set(obj.position.x, obj.position.y, obj.position.z);
+				bullet.position.set(obj.position.x, obj.position.y * 0.8, obj.position.z);
+				// var originPoint = bullet.position.clone();
 
-				var vector = camera.position.clone();
-				bullet.ray = new THREE.Ray(obj.position, vector.subSelf(obj.position).normalize());
+				if (obj === car) {
+					var vector = camera.position.clone();
+					bullet.ray = new THREE.Ray(obj.position, vector.subSelf(obj.position).normalize());
+				} else {
+					var vector = obj2.position.clone();
+					bullet.ray = new THREE.Ray(obj.position, vector.subSelf(obj.position).normalize());
+				}
 
 				bullet.owner = obj;
 
 				bullets.push(bullet);
 				scene.add(bullet);
 
-				return bullet;
+				return obj;
+
 			}
 
 			function onWindowResize() {
@@ -371,16 +388,12 @@
 						if (obj === car) {
 							//speed = -10;
 							speed = myWorld.CarMove("W", true);
-							//health--;
 
 							$('#health').html(myWorld.healthControl("car", "wall"));
 							if (myWorld.healthControl("car", "wall") <= 0)
 								$('#health').html("Finished");
 						} else if (obj != car)
 							Nspeed = myWorld.setEnemyCarSpeed(timer, true, index);
-							//scene.remove(enemyCarr[3]);
-							console.log("Nspeed " + Nspeed + "index" + index);
-						//Nspeed = -10;
 					}
 
 				}
@@ -394,11 +407,11 @@
 				// $('#time').html(timer + "s");
 
 			}
-			
+
 			function setIndex() {
 
 				index++;
-				if(index >= 3)
+				if (index >= 3)
 					index = 0;
 
 				// $('#time').html(timer + "s");
@@ -412,10 +425,11 @@
 				collision(car, collidableMeshList);
 				// console.log(index);
 				// var carr = enemyCarr[index];
-				// collision(carr, collidableMeshList, index);
+				// collision(carr, collidableMesh, index);
 				// setIndex();
-				
-				//collision(car, Ncar);
+
+				collision(car, enemyCarr);
+				//collision(Ncar, collidableMesh);
 
 				updateTime();
 
@@ -424,7 +438,7 @@
 
 			}
 
-			function distance(x1, x2, y1, y2) {
+			function distance(x1, y1, x2, y2) {
 
 				var dis = Math.sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1));
 				return dis;
@@ -447,13 +461,20 @@
 			}
 
 			function render() {
-				
-				
-				for(var j = enemyCarr.length-1; j>=0; j--){
-				console.log(j);
-				var enemy = enemyCarr[j];
-				collision(enemy, collidableMeshList, j);
-					
+
+				for (var j = enemyCarr.length - 1; j >= 0; j--) {
+					console.log(j);
+					enemy = enemyCarr[j];
+					collision(enemy, collidableMeshList, j);
+					collision(enemy, collidableMesh, j);
+
+					var dist = distance(enemy.position.x, enemy.position.z, car.position.x, car.position.z);
+
+					if (dist < 600 && Date.now() > enemy.lastShot + 750) {
+						object = createBullet(enemy, car);
+						enemy.lastShot = Date.now();
+					}
+					console.log("Distance " + dist + " enemy Car " + j);
 					//scene.remove(enemy);
 				}
 				var delta = cloc.getDelta();
@@ -470,12 +491,20 @@
 						bullets.splice(i, 1);
 						scene.remove(b);
 					}
+					if (object == car) {
+						if (!hit) {
+							//b.rotation.x = Math.PI / 2;
+							b.translateX(bspeed * -(d.x));
+							b.translateZ(bspeed * -(d.z));
 
-					if (!hit) {
-						//b.rotation.x = Math.PI / 2;
-						b.translateX(bspeed * -(d.x));
-						b.translateZ(bspeed * -(d.z));
+						}
+					} else {
+						if (!hit) {
+							//b.rotation.x = Math.PI / 2;
+							b.translateX(bspeed * (d.x));
+							b.translateZ(bspeed * (d.z));
 
+						}
 					}
 				}
 				var rotationAngle = 0.05 * Math.abs(speed / 10);
@@ -495,15 +524,14 @@
 				}
 				if (keyboard.pressed("W")) {
 					//speed += acceleration;
-					
-						speed = myWorld.CarMove("W", false);
-					
+
+					speed = myWorld.CarMove("W", false);
+
 					$('#speed').html(speed);
 
 				}
 				if (keyboard.pressed("S")) {
-					//speed -= acceleration;
-					
+
 					speed = myWorld.CarMove("S", false);
 					$('#speed').html(speed);
 
@@ -514,15 +542,11 @@
 				if (keyboard.pressed("down")) {
 					cameraYPos -= cameraYPos <= 0 ? 0 : 10;
 				}
-				
-				
 
 				if (!keyboard.pressed("W") && !keyboard.pressed("S")) {
-					speed -= 1;
-					if (speed == -1)
-						speed = 0;
-						
-						
+
+					myWorld.CarMove("F", false);
+
 					$('#speed').html(speed);
 
 				}
@@ -545,34 +569,28 @@
 				car.position.z = computedZ;
 
 				// =========================NEW ENEMY CAR========================================
-				for(var k = 0 ; k < myWorld.noOfEnemies() ; k++ ){
-			//	console.log(myWorld.noOfEnemies() + "  " + k);
-				enemyCarr[k].rotation.y = myWorld.setEnemyCarRotation(timer, enemyCarr[k].rotation.y,k);
+				for (var k = 0; k < myWorld.noOfEnemies(); k++) {
+					enemyCarr[k].rotation.y = myWorld.setEnemyCarRotation(timer, enemyCarr[k].rotation.y, k);
 
-				var eRN = enemyCarr[k].rotation.y;
+					var eRN = enemyCarr[k].rotation.y;
 
-				enemyCarr[k].position.x = myWorld.setEnemyCarNewPositionX(myWorld.setEnemyCarSpeed(timer, false, k), eRN, enemyCarr[k].position.x, k);
-				enemyCarr[k].position.z = myWorld.setEnemyCarNewPositionZ(myWorld.setEnemyCarSpeed(timer, false,k), eRN, enemyCarr[k].position.z,k);
-				
-				if(k > 3)
-					k = 1;
-				// enemyCarr[1].rotation.y = myWorld.setEnemyCarRotation(timer, enemyCarr[1].rotation.y, 1);
+					enemyCarr[k].position.x = myWorld.setEnemyCarNewPositionX(myWorld.setEnemyCarSpeed(timer, false, k), eRN, enemyCarr[k].position.x, k);
+					enemyCarr[k].position.z = myWorld.setEnemyCarNewPositionZ(myWorld.setEnemyCarSpeed(timer, false, k), eRN, enemyCarr[k].position.z, k);
 
-				// var eRN = enemyCarr[1].rotation.y;
+					if (k > 3)
+						k = 1;
 
-				// enemyCarr[1].position.x = myWorld.setEnemyCarNewPositionX(myWorld.setEnemyCarSpeed(timer, false, 1), eRN, enemyCarr[1].position.x, 1);
-				// enemyCarr[1].position.z = myWorld.setEnemyCarNewPositionZ(myWorld.setEnemyCarSpeed(timer, false, 1), eRN, enemyCarr[1].position.z, 1);
 				}
-				
+
 				//=======================new car speed==================================
 
 				// if (Nspeed > 0)
-					// Nspeed = Nspeed - speedDamping;
+				// Nspeed = Nspeed - speedDamping;
 				// else
-					// Nspeed = 0;
+				// Nspeed = 0;
 
 				// if (Nspeed > maxSpeed)
-					// Nspeed = maxSpeed;
+				// Nspeed = maxSpeed;
 
 				//=======================old car speed==================================
 
