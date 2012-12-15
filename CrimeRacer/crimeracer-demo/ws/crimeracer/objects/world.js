@@ -277,15 +277,29 @@ CrimeRacer.World.prototype.setEnemyCarNewPositionZ = function(Speed, rotation, z
 
 }
 
-CrimeRacer.World.prototype.healthControl = function(obj1, obj2) {
+CrimeRacer.World.prototype.healthControl = function() {
 
-	if (obj1 === "car" && (obj2 === "tree" || obj2 === "wall")) {
-
-		this.myCar.health--;
-		return this.myCar.health;
-	}
+	return this.myCar.getHealth();
 
 }
+
+
+CrimeRacer.World.prototype.enemyHealthControl = function(id) {
+
+	if (id == 0) {
+		this.enemyCar = this.enemy.enemyCar1;
+
+	}
+	if (id == 1) {
+		this.enemyCar = this.enemy.enemyCar2;
+
+	}
+	if (id == 2) {
+		this.enemyCar = this.enemy.enemyCar3;
+	}
+		return this.enemyCar.getHealth();
+}
+
 
 CrimeRacer.World.prototype.CarMove = function(key, hit) {
 

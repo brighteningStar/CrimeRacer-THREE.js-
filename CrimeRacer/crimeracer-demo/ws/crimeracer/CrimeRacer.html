@@ -158,7 +158,7 @@
 
 				});
 
-				$('body').append('<div id="hud"><span id="speed">0</span></br>Health: <span id="health">100</span>');
+				$('body').append('<div id="hud"><span id="speed">0</span></br>Health: <span id="health">100</span></br>Enemy Car 1: <span id="enemyHealth1">100</span></br>Enemy Car 2: <span id="enemyHealth2">100</span></br>Enemy Car 3: <span id="enemyHealth3">100</span>');
 
 				//Geometry
 				var texture = THREE.ImageUtils.loadTexture("images/wooden.jpg");
@@ -374,11 +374,29 @@
 							//speed = -10;
 							speed = myWorld.CarMove("W", true);
 
-							$('#health').html(myWorld.healthControl("car", "wall"));
-							if (myWorld.healthControl("car", "wall") <= 0)
-								$('#health').html("Finished");
-						} else if (obj != car)
+							// $('#health').html(myWorld.healthControl());
+							// if (myWorld.healthControl() <= 0)
+							// $('#health').html("Finished");
+						} else if (obj != car) {
+
+							// if(index == 0){
+							// $('#enemyHealth1').html(myWorld.enemyHealthControl(index));
+							// if (myWorld.enemyHealthControl() <= 0)
+							// $('#enemyHealth1').html("Finished");
+							// }
+							// else if(index == 1){
+							// $('#enemyHealth2').html(myWorld.enemyHealthControl(index));
+							// if (myWorld.enemyHealthControl() <= 0)
+							// $('#enemyHealth2').html("Finished");
+							// }
+							// else if(index == 2){
+							// $('#enemyHealth3').html(myWorld.enemyHealthControl(index));
+							// if (myWorld.enemyHealthControl() <= 0)
+							// $('#enemyHealth3').html("Finished");
+							// }
+
 							Nspeed = myWorld.setEnemyCarSpeed(timer, true, index);
+						}
 					}
 
 				}
@@ -392,8 +410,6 @@
 				// $('#time').html(timer + "s");
 
 			}
-
-			
 
 			function animate() {
 
@@ -480,6 +496,9 @@
 					dist = distance(b.position.x, b.position.z, car.position.x, car.position.z);
 					if (dist < 150 && b.owner != car) {
 						//speed = myWorld.CarMove("W", true);
+						$('#health').html(myWorld.healthControl());
+						if (myWorld.healthControl() <= 0)
+							$('#health').html("Finished");
 						bullets.splice(i, 1);
 						scene.remove(b);
 
@@ -492,6 +511,26 @@
 						var dist = distance(enemy.position.x, enemy.position.z, b.position.x, b.position.z);
 
 						if (dist < 150 && b.owner == car) {
+
+							if (j == 0) {
+								$('#enemyHealth1').html(myWorld.enemyHealthControl(j));
+								if (myWorld.enemyHealthControl() <= 0) {
+									$('#enemyHealth1').html("Finished");
+									scene.remove(enemy);
+								}
+							} else if (j == 1) {
+								$('#enemyHealth2').html(myWorld.enemyHealthControl(j));
+								if (myWorld.enemyHealthControl() <= 0) {
+									$('#enemyHealth2').html("Finished");
+									scene.remove(enemy);
+								}
+							} else if (j == 2) {
+								$('#enemyHealth3').html(myWorld.enemyHealthControl(j));
+								if (myWorld.enemyHealthControl() <= 0) {
+									$('#enemyHealth3').html("Finished");
+									scene.remove(enemy);
+								}
+							}
 							bullets.splice(i, 1);
 							scene.remove(b);
 							//Nspeed = myWorld.setEnemyCarSpeed(timer, true, j);

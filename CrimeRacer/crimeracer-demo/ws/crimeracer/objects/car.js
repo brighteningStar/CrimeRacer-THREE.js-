@@ -8,7 +8,7 @@ CrimeRacer.Car = function() {
 	};
 
 	this.speed = 0;
-	this.health = 115;
+	this.health = 100;
 	this.maxSpeed = 73;
 	this.rotationalAngle = 0.05;
 	this.acceleration = 3;
@@ -85,7 +85,7 @@ CrimeRacer.Car.prototype.carHit = function() {
 }
 CrimeRacer.Car.prototype.getHealth = function() {
 
-	return this.health;
+	return this.health -= 10;
 }
 
 CrimeRacer.Car.prototype.setHealth = function(health) {

@@ -79,7 +79,7 @@ CrimeRacer.enemyCar.prototype.getMaxSpeed = function() {
 
 CrimeRacer.enemyCar.prototype.getHealth = function() {
 
-	return this.health;
+	return this.health -= 10;
 }
 
 CrimeRacer.enemyCar.prototype.setHealth = function(health) {
