@@ -13,7 +13,7 @@ CrimeRacer.Car = function() {
 	this.rotationalAngle = 0.05;
 	this.acceleration = 3;
 	this.hitSpeed = -10;
-	this.backSpeed = -3;
+	this.backSpeed = -10;
 	// default at position 0
 }
 

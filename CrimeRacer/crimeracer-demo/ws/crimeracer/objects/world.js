@@ -2,13 +2,13 @@ var CrimeRacer = CrimeRacer || {};
 
 CrimeRacer.World = function() {
 
-	this.noOfTrees = 17;
+	this.noOfTrees = 23;
 	this.noOfSideForTree = 2;
 	this.noOfSides = 4;
-	this.noOfBlocksPerWall = 100;
+	this.noOfBlocksPerWall = 150;
 	this.carSpeedCkeck
 	this.noOfEnemy = 3;
-
+	
 	this.enemy = {
 		enemyCar1 : new CrimeRacer.enemyCar,
 		enemyCar2 : new CrimeRacer.enemyCar,
@@ -25,41 +25,41 @@ CrimeRacer.World = function() {
 	this.myTreePosition = new CrimeRacer.Tree;
 
 	this.frontWallPos = {
-		x : 4700,
+		x : 7000,
 		y : 100,
-		z : -5000,
+		z : -7000,
 		id : 1
 	};
 	this.backWallPos = {
-		x : -4700,
+		x : -7000,
 		y : 100,
-		z : -5000,
+		z : -7000,
 		id : 2
 	};
 	this.leftWallPos = {
-		x : -4700,
+		x : -7000,
 		y : 100,
-		z : -4700,
+		z : -7000,
 		id : 3
 	};
 	this.rightWallPos = {
-		x : -4700,
+		x : -7000,
 		y : 100,
-		z : 4700,
+		z : 7000,
 		id : 4
 	};
 
 	this.rightTreeRow = {
-		x : 4600,
+		x : 6000,
 		y : 80,
-		z : 1700,
+		z : 2400,
 		id : 1
 	};
 
 	this.leftTreeRow = {
-		x : 4600,
+		x : 6000,
 		y : 80,
-		z : -1700,
+		z : -2400,
 		id : 2
 	};
 
@@ -169,6 +169,7 @@ CrimeRacer.World.prototype.setEnemyCarSpeed = function(timer, hit, id) {
 
 	if (id == 0) {
 		this.enemyCar = this.enemy.enemyCar1;
+	
 
 	}
 	if (id == 1) {

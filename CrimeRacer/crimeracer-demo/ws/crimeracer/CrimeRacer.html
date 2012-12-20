@@ -8,7 +8,7 @@
 			body {
 
 				font-family: Monospace;
-				background-color: #000000;
+				background-color: #50dee7;
 				margin: 0px auto;
 				overflow: hidden;//
 				background-image: url('images/Bodybackground.jpg');
@@ -64,6 +64,7 @@
 		<script src="objects/midWay.js"></script>
 		<script src="objects/time.js"></script>
 		<script src="objects/enemyCar.js"></script>
+		
 
 		<script>
 			var container, stats;
@@ -77,7 +78,7 @@
 			var acceleration = 3;
 			var speedDamping = 1;
 			var maxSpeed = 70;
-			var cameraYPos = 500;
+			var cameraYPos = 250;
 			var mycar;
 			var eneCar;
 			var object;
@@ -94,24 +95,45 @@
 			var cloc = new THREE.Clock();
 			var index = 0;
 			var enemy;
-			//var health = 104;
+			var refrencePoint = [];
+			var point;
 			var hitCount = 0;
-			var loader2 = new THREE.ColladaLoader();
+			var checkObj;
 			var wall;
 			var timer = myWorld.worldTime.currentTime.getSeconds();
+			var XPath, YPath, ZPath;
+			var Ccar;
+			var te = 500;
+			var tree;
+			var trees = [];
+			var loader2 = new THREE.ColladaLoader();
+			var bulletOfCar;
 			// init();
+
 			// animate();
 
-			loader2.load('obj/TREE.dae', function colladaReady(collada) {
+			loader2.load('obj/us/us_police_car.dae', function colladaReady(collada) {
 				localObject = collada.scene;
-
-				localObject.scale.x = localObject.scale.y = localObject.scale.z = 60;
+				
+				localObject.scale.x = localObject.scale.y = localObject.scale.z = 2;
 				localObject.updateMatrix();
+				localObject.position.x = 500;
+				localObject.position.x = 0;
+				localObject.position.x = 500;
+				
+				
+				localObject.rotation.x = -(Math.PI / 2);
+			
+				localObject.rotation.z = (Math.PI / 2);
+				
+				//localObject.rotation.z = -(Math.PI / 2);
 				//collidableMeshList3 = localObject;
 				//console.log(collidableMeshList3);
 				//scene.add(localObject);
+
 				init();
 				animate();
+
 			});
 
 			function init() {
@@ -124,11 +146,12 @@
 				container.appendChild(info);
 
 				//camera = new THREE.OrthographicCamera(window.innerWidth / -2, window.innerWidth / 2, window.innerHeight / 2, window.innerHeight / -2, -2000, 1000);
-				camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 2, 10000);
+				camera = new THREE.PerspectiveCamera(100, window.innerWidth / window.innerHeight, 2, 100000);
 
-				camera.position.set(1500, -1000, 1500);
+				camera.position.set(-1000, 0, 0);
 
 				scene = new THREE.Scene();
+				//scene.fog = new THREE.FogExp2(0xD6F1FF, 0.0003); // color, density
 
 				var texture = THREE.ImageUtils.loadTexture("images/road.jpg");
 				texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
@@ -138,9 +161,9 @@
 					color : 0x473e34,
 					map : texture
 				});
-				//groundBasic.color.setHSV( 0.1, 0.45, 0.995 );
+				groundBasic.color.setHSV(0.1, 0.45, 0.995);
 
-				ground = new THREE.Mesh(new THREE.PlaneGeometry(10000, 10000, 80, 80), groundBasic);
+				ground = new THREE.Mesh(new THREE.PlaneGeometry(15000, 15000, 80, 80), groundBasic);
 				ground.position.y = 0;
 				ground.rotation.x = (-Math.PI / 2);
 				ground.rotation.z = Math.PI / 2;
@@ -209,6 +232,13 @@
 					}
 				}
 
+				//createBoxes ();
+				//localObject.position.x = 1000;
+				scene.add(localObject);
+				
+				// console.log("loader Value " + localObject.position.x);
+
+				//	console.log("checkObj" + checkObj);
 				// ========================wall=================================
 				var texture = THREE.ImageUtils.loadTexture("images/stone2.jpg");
 				texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
@@ -237,25 +267,41 @@
 
 					}
 				}
+				
+				
 
-				var carGeometry = new THREE.CubeGeometry(100, 100, 100);
+				var texture = THREE.ImageUtils.loadTexture("images/car.jpg");
+				texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+				texture.repeat.set(.5, .5);
+
+				var carGeometry = new THREE.CubeGeometry(400, 100, 150);
 				var carMaterial = new THREE.MeshLambertMaterial({
-					color : 0x00FFFF,
-					shading : THREE.FlatShading,
+					color : 0x000000,
+					//shading : THREE.FlatShading,
 					overdraw : true,
 					map : texture
 				});
 
 				car = new THREE.Mesh(carGeometry, carMaterial);
 				myWorld.setWorldCar();
-				car.position.x = myWorld.myCar.position.x;
-				car.position.y = myWorld.myCar.position.y;
-				car.position.z = myWorld.myCar.position.z;
+				car.position.x = localObject.position.x + 10 ;
+				car.position.y = localObject.position.y;
+				car.position.z = localObject.position.z ;
 				car.castShoadow = true;
 				car.receiveShadow = true;
 				collidableMesh.push(car);
+				car.material.wireframe = true;
 				scene.add(car);
-
+				// scene.remove(car);
+				
+				
+				var carGeometry = new THREE.CubeGeometry(100, 100, 100);
+				var carMaterial = new THREE.MeshLambertMaterial({
+					color : 0x000000,
+					//shading : THREE.FlatShading,
+					overdraw : true,
+					map : texture
+				});
 				for (var k = 1; k <= myWorld.noOfEnemies(); k++) {
 
 					Ncar = new THREE.Mesh(carGeometry, carMaterial);
@@ -265,14 +311,32 @@
 					Ncar.position.z = myWorld.enemyCar.position.z;
 					scene.add(Ncar);
 					Ncar.castShoadow = true;
+					Ncar.receiveShadow = true;
+					
 					Ncar.lastShot = Date.now();
 					enemyCarr.push(Ncar);
 				}
+				//======================================================================================
+
+				// var materialArray = [];
+				// materialArray.push(new THREE.MeshBasicMaterial( { map: THREE.ImageUtils.loadTexture( 'images/background.jpg' ) }));
+				// materialArray.push(new THREE.MeshBasicMaterial( { map: THREE.ImageUtils.loadTexture( 'images/background.jpg' ) }));
+				// materialArray.push(new THREE.MeshBasicMaterial( { map: THREE.ImageUtils.loadTexture( 'images/background.jpg' ) }));
+				// materialArray.push(new THREE.MeshBasicMaterial( { map: THREE.ImageUtils.loadTexture( 'images/background.jpg' ) }));
+				// materialArray.push(new THREE.MeshBasicMaterial( { map: THREE.ImageUtils.loadTexture( 'images/background.jpg' ) }));
+				// materialArray.push(new THREE.MeshBasicMaterial( { map: THREE.ImageUtils.loadTexture( 'images/background.jpg' ) }));
+				// var skyboxGeom = new THREE.CubeGeometry( 5000, 5000, 20000, 1, 1, 1, materialArray );
+				// var skybox = new THREE.Mesh( skyboxGeom, new THREE.MeshFaceMaterial() );
+				// skybox.position.x = 8000;
+				// // skybox.position.z = 5000;
+				// skybox.flipSided = true;
+				// scene.add( skybox );
+
+				//====================================================================================
 
 				// Lights
 
 				var ambientLight = new THREE.AmbientLight(/*Math.random() * 0x10*/0xffffff);
-				ambientLight.castShadow = true;
 				scene.add(ambientLight);
 
 				var directionalLight = new THREE.DirectionalLight(/*Math.random() * 0xffffff*/0x1a4d06);
@@ -281,9 +345,9 @@
 				directionalLight.position.z = 4000;
 				//directionalLight.position.normalize();
 				directionalLight.castShadow = true;
-				directionalLight.shadowCameraNear = 100;
+				directionalLight.shadowCameraNear = 1000;
 				directionalLight.shadowCameraFar = camera.far;
-				directionalLight.shadowCameraFov = 50;
+				directionalLight.shadowCameraFov = 100;
 				directionalLight.shadowBias = -0.00125;
 				directionalLight.shadowDarkness = 0.5;
 				directionalLight.shadowMapWidth = 1024;
@@ -316,15 +380,15 @@
 			function createBullet(obj, obj2) {
 
 				if (obj === undefined) {
-					obj = car;
+					obj = localObject;
 					obj2 = enemy;
 				}
 
 				var bullet = new THREE.Mesh(bulletGeo, bulletMaterial);
-				bullet.position.set(obj.position.x, obj.position.y * 0.8, obj.position.z);
+				bullet.position.set(obj.position.x, (obj.position.y + 15) * 0.8, obj.position.z);
 				// var originPoint = bullet.position.clone();
 
-				if (obj === car) {
+				if (obj === localObject) {
 					var vector = camera.position.clone();
 					bullet.ray = new THREE.Ray(obj.position, vector.subSelf(obj.position).normalize());
 				} else {
@@ -340,6 +404,25 @@
 				return bullet;
 
 			}
+
+			
+				loader2.load('obj/pine/tree.dae', function colladaReady(collada) {
+				tree = collada.scene;
+				
+				tree.scale.x = tree.scale.y = tree.scale.z = 2;
+				tree.updateMatrix();
+				
+				tree.position.x = 500;
+			//	bulletOfCar.position.y = 50;
+				tree.rotation.x = -(Math.PI / 2);
+			
+				tree.rotation.z = (Math.PI / 2);
+				tree.rotation.y = (Math.PI / 4);
+				scene.add(tree);
+
+			});
+				
+			
 
 			function onWindowResize() {
 
@@ -361,19 +444,22 @@
 				//clearText();
 
 				for (var vertexIndex = 0; vertexIndex < obj.geometry.vertices.length; vertexIndex++) {
+				
+				
 					var localVertex = obj.geometry.vertices[vertexIndex].clone();
 					var globalVertex = obj.matrix.multiplyVector3(localVertex);
 
 					var directionVector = globalVertex.subSelf(obj.position);
 
 					var ray = new THREE.Ray(originPoint, directionVector.clone().normalize());
+				
 					var collisionResults = ray.intersectObjects(obj2);
 
 					if (collisionResults.length > 0 && collisionResults[0].distance < directionVector.length()) {
 						if (obj === car) {
 							//speed = -10;
 							speed = myWorld.CarMove("W", true);
-
+							//scene.remove(car);
 							// $('#health').html(myWorld.healthControl());
 							// if (myWorld.healthControl() <= 0)
 							// $('#health').html("Finished");
@@ -418,7 +504,40 @@
 				collision(car, collidableMeshList);
 				collision(car, enemyCarr);
 				//collision(Ncar, collidableMesh);
+				// var texture = new THREE.Texture();
 
+				// var loader = new THREE.ImageLoader();
+				// loader.addEventListener( 'load', function ( event ) {
+
+					// texture.image = event.content;
+					// texture.needsUpdate = true;
+
+				// } );
+				// loader.load( 'obj/crate.gif' );
+
+				// // model
+
+				// var loader = new THREE.OBJLoader();
+				// loader.addEventListener( 'load', function ( event ) {
+
+					// var object = event.content;
+
+					// for ( var i = 0, l = object.children.length; i < l; i ++ ) {
+
+						// object.children[ i ].material.map = texture;
+
+					// }
+					// object.scale.x = object.scale.y = object.scale.z = 200;
+					// object.position.x = 4000;
+					// object.position.y = 100;
+					// object.position.z = 3000;
+					// //objects.push(object);
+					// scene.add( object );
+					
+
+				// });
+				// loader.load( 'obj/Crate Box/crate.obj' );
+			
 				updateTime();
 
 				render();
@@ -439,7 +558,8 @@
 					var v = collideMesh.geometry.vertices[0];
 					var c = collideMesh.position;
 					var x = Math.abs(v.x), z = Math.abs(v.z);
-					if (bullet.x < c.x + x && bullet.x > c.x - x && bullet.z < c.z + z && bullet.z > c.z - z) {
+					
+					if (bullet.x  < c.x + x  && bullet.x  > c.x - x && bullet.z < c.z + z  && bullet.z > c.z - z) {
 
 						return true;
 					}
@@ -449,22 +569,35 @@
 			}
 
 			function render() {
+			
 
+				
+				
+				
+					
 				for (var j = enemyCarr.length - 1; j >= 0; j--) {
 
 					enemy = enemyCarr[j];
 					collision(enemy, collidableMeshList, j);
 					collision(enemy, collidableMesh, j);
 
-					var dist = distance(enemy.position.x, enemy.position.z, car.position.x, car.position.z);
-
+					var dist = distance(enemy.position.x, enemy.position.z, localObject.position.x, localObject.position.z);
+					
 					if (dist < 600 && Date.now() > enemy.lastShot + 750) {
-						object = createBullet(enemy, car);
+						object = createBullet(enemy, localObject);
 						enemy.lastShot = Date.now();
 					}
+					// console.log("dist "+ dist + "enemy " + enemy.position.x);
+					// if(distance(enemy.position.x, enemy.position.z, localObject.position.x, localObject.position.z) < 700){
+						
+						// Nspeed = myWorld.setEnemyCarSpeed(timer, true, index);
+					
+					// }
+					
 
 					//scene.remove(enemy);
 				}
+				//scene.remove(car);
 				var delta = cloc.getDelta();
 
 				var bspeed = delta * 3000;
@@ -480,21 +613,25 @@
 						scene.remove(b);
 					}
 
-					if (!hit && b.owner != car) {
+					if (checkHit(localObject.position) === true) {
+						speed = myWorld.CarMove("W", true);
+					}
+
+					if (!hit && b.owner != localObject) {
 						//b.rotation.x = Math.PI / 2;
 						b.translateX(bspeed * (d.x));
 						b.translateZ(bspeed * (d.z));
 
 					}
 
-					if (!hit && b.owner == car) {
+					if (!hit && b.owner == localObject) {
 						//b.rotation.x = Math.PI / 2;
 						b.translateX(bspeed * -(d.x));
 						b.translateZ(bspeed * -(d.z));
 
 					}
-					dist = distance(b.position.x, b.position.z, car.position.x, car.position.z);
-					if (dist < 150 && b.owner != car) {
+					dist = distance(b.position.x, b.position.z, localObject.position.x, localObject.position.z);
+					if (dist < 150 && b.owner != localObject) {
 						//speed = myWorld.CarMove("W", true);
 						$('#health').html(myWorld.healthControl());
 						if (myWorld.healthControl() <= 0)
@@ -510,25 +647,35 @@
 
 						var dist = distance(enemy.position.x, enemy.position.z, b.position.x, b.position.z);
 
-						if (dist < 150 && b.owner == car) {
+						if (dist < 150 && b.owner == localObject) {
 
 							if (j == 0) {
 								$('#enemyHealth1').html(myWorld.enemyHealthControl(j));
 								if (myWorld.enemyHealthControl() <= 0) {
 									$('#enemyHealth1').html("Finished");
-									scene.remove(enemy);
+									enemy.position.x = 15000;
+									enemy.position.z = 15000;
+									//scene.remove(enemy);
+
 								}
 							} else if (j == 1) {
 								$('#enemyHealth2').html(myWorld.enemyHealthControl(j));
+
 								if (myWorld.enemyHealthControl() <= 0) {
 									$('#enemyHealth2').html("Finished");
-									scene.remove(enemy);
+									enemy.position.x = 15000;
+									enemy.position.z = 15000;
+									//scene.remove(enemy);
+
 								}
 							} else if (j == 2) {
 								$('#enemyHealth3').html(myWorld.enemyHealthControl(j));
 								if (myWorld.enemyHealthControl() <= 0) {
 									$('#enemyHealth3').html("Finished");
-									scene.remove(enemy);
+									enemy.position.x = 15000;
+									enemy.position.z = 15000;
+									//scene.remove(enemy);
+
 								}
 							}
 							bullets.splice(i, 1);
@@ -545,15 +692,16 @@
 					rotationAngle = 0.05;
 
 				if (keyboard.pressed("A")) {
-					car.rotation.y += rotationAngle;
-					if (car.rotation.y > 6)
-						car.rotation.y -= 6;
+					localObject.rotation.z += rotationAngle;
+
+					if (localObject.rotation.z > 6)
+						localObject.rotation.z -= 6;
 				}
 
 				if (keyboard.pressed("D")) {
-					car.rotation.y -= rotationAngle;
-					if (car.rotation.y < 0)
-						car.rotation.y = 6 + car.rotation.y;
+					localObject.rotation.z -= rotationAngle;
+					if (localObject.rotation.z < 0)
+						localObject.rotation.z = 6 + localObject.rotation.z;
 				}
 				if (keyboard.pressed("W")) {
 					//speed += acceleration;
@@ -590,14 +738,16 @@
 				var phaseX = 1;
 				var phaseY = 1;
 				//var eR = myWorld.myCar.rotation.y;
-				var eR = car.rotation.y;
-
-				var computedX = (car.position.x + ((speed * Math.cos(eR)) * phaseX));
-				var computedZ = (car.position.z - ((speed * Math.sin(eR)) * phaseY));
+				var eR = localObject.rotation.x + localObject.rotation.z;
+				car.rotation.y = localObject.rotation.x + localObject.rotation.z;
+				var computedX = (localObject.position.x + ((speed * Math.cos(eR)) * phaseX));
+				var computedZ = (localObject.position.z - ((speed * Math.sin(eR)) * phaseY));
 
 				// var computedX = (myWorld.myCar.position.x + ((myWorld.myCar.speed++ * Math.cos(eR)) * phaseX));
 				// var computedZ = (myWorld.myCar.position.z - ((myWorld.myCar.speed++ * Math.sin(eR)) * phaseY));
 
+				localObject.position.x = computedX;
+				localObject.position.z = computedZ;
 				car.position.x = computedX;
 				car.position.z = computedZ;
 
@@ -610,7 +760,7 @@
 					enemyCarr[k].position.x = myWorld.setEnemyCarNewPositionX(myWorld.setEnemyCarSpeed(timer, false, k), eRN, enemyCarr[k].position.x, k);
 					enemyCarr[k].position.z = myWorld.setEnemyCarNewPositionZ(myWorld.setEnemyCarSpeed(timer, false, k), eRN, enemyCarr[k].position.z, k);
 
-					if (k > 3)
+					if (k > myWorld.noOfEnemies())
 						k = 1;
 
 				}
@@ -628,8 +778,8 @@
 				// camera.position.x = Math.cos(timer) * 200;
 				// camera.position.z = Math.sin(timer) * 200;
 
-				camera.position.x = car.position.x - (Math.cos(eR) * 500 );
-				camera.position.z = car.position.z + (Math.sin(eR) * 500 );
+				camera.position.x = localObject.position.x - (Math.cos(eR) * 500 );
+				camera.position.z = localObject.position.z + (Math.sin(eR) * 500 );
 
 				// new car camera==============
 
@@ -637,7 +787,7 @@
 				// camera.position.z = Ncar.position.z + (Math.sin(eRN) * 500 );
 
 				camera.position.y = cameraYPos;
-				camera.lookAt(car.position);
+				camera.lookAt(localObject.position);
 				//camera.lookAt(Ncar.position);
 				renderer.shadowMapEnabled = true;
 				renderer.render(scene, camera);
