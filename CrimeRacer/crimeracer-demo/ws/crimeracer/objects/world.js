@@ -2,12 +2,13 @@ var CrimeRacer = CrimeRacer || {};
 
 CrimeRacer.World = function() {
 
-	this.noOfTrees = 23;
+	this.noOfTrees = 30;
 	this.noOfSideForTree = 2;
 	this.noOfSides = 4;
-	this.noOfBlocksPerWall = 150;
+	this.noOfBlocksPerWall = 200;
 	this.carSpeedCkeck
 	this.noOfEnemy = 3;
+	this.noOfBoxes = 10;
 	
 	this.enemy = {
 		enemyCar1 : new CrimeRacer.enemyCar,
@@ -20,46 +21,47 @@ CrimeRacer.World = function() {
 	//	 this.enemy.push(this.enemyCar);
 	//}
 	this.myWall = new CrimeRacer.Wall;
-	this.myMidWayPosition = new CrimeRacer.MidWay;
+	this.myBoxesPosition = new CrimeRacer.Boxes;
 	this.worldTime = new CrimeRacer.Time;
 	this.myTreePosition = new CrimeRacer.Tree;
+	this.myTree = new CrimeRacer.Tree;
 
 	this.frontWallPos = {
-		x : 7000,
+		x : 10000,
 		y : 100,
-		z : -7000,
+		z : -10000,
 		id : 1
 	};
 	this.backWallPos = {
-		x : -7000,
+		x : -10000,
 		y : 100,
-		z : -7000,
+		z : -10000,
 		id : 2
 	};
 	this.leftWallPos = {
-		x : -7000,
+		x : -10000,
 		y : 100,
-		z : -7000,
+		z : -10000,
 		id : 3
 	};
 	this.rightWallPos = {
-		x : -7000,
+		x : -10000,
 		y : 100,
-		z : 7000,
+		z : 10000,
 		id : 4
 	};
 
 	this.rightTreeRow = {
-		x : 6000,
+		x : 8000,
 		y : 80,
-		z : 2400,
+		z : 3200,
 		id : 1
 	};
 
 	this.leftTreeRow = {
-		x : 6000,
+		x : 8000,
 		y : 80,
-		z : -2400,
+		z : -3200,
 		id : 2
 	};
 
@@ -74,6 +76,10 @@ CrimeRacer.World.prototype.noOfTress = function() {
 	return this.noOfTrees;
 }
 
+CrimeRacer.World.prototype.noOfBox = function() {
+
+	return this.noOfBoxes;
+}
 CrimeRacer.World.prototype.noOfEnemies = function() {
 
 	return this.noOfEnemy;
@@ -115,6 +121,16 @@ CrimeRacer.World.prototype.setWorldTreePosition = function(k) {
 		this.myTreePosition.setPos(this.leftTreeRow.x, this.leftTreeRow.y, this.leftTreeRow.z, this.leftTreeRow.id);
 	if (k === 1)
 		this.myTreePosition.setPos(this.rightTreeRow.x, this.rightTreeRow.y, this.rightTreeRow.z, this.rightTreeRow.id);
+
+}
+
+CrimeRacer.World.prototype.setWorldBoxPosition = function() {
+
+	//var xDistance = myFunctionXPos();
+
+	
+		this.myBoxesPosition.setPos(-4000, 100, -4000);
+	
 
 }
 

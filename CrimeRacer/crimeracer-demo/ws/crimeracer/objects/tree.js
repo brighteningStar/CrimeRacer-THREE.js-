@@ -7,6 +7,9 @@ CrimeRacer.Tree = function() {
 		z : 1700
 	};
 	// default at position 0
+	this.textureModelURL = "images/normal_L1010014.jpg";
+	this.textureMeshURL = "images/crate.gif";
+	this.modelURL = "obj/Palm_Tree.obj";
 
 }
 var myFunctionXPosTrees = function() {
@@ -46,4 +49,15 @@ CrimeRacer.Tree.prototype.setPos = function(xPos, yPos, zPos, treeId) {
 	}
 
 }
+CrimeRacer.Tree.prototype.getModelTextureURL = function() {
 
+	return this.textureModelURL;
+}
+CrimeRacer.Tree.prototype.getMeshURL = function() {
+
+	return this.textureMeshURL;
+}
+CrimeRacer.Tree.prototype.getModelURL = function() {
+
+	return this.modelURL;
+}

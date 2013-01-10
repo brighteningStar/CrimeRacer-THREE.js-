@@ -72,7 +72,7 @@
 		<script src="loader/OBJMTLLoader.js"></script>
 		<script src="objects/world.js"></script>
 		<script src="objects/tree.js"></script>
-		<script src="objects/midWay.js"></script>
+		<script src="objects/boxes.js"></script>
 		<script src="objects/time.js"></script>
 		<script src="objects/enemyCar.js"></script>
 
@@ -123,6 +123,11 @@
 			var boxArray = [];
 			var box;
 			var runAnim = true;
+			var xWidth = 0;
+			var zWidth = 0;
+			var xPos = 0;
+			var zPos = 0;
+			var carr;
 			// init();
 
 			// animate();
@@ -178,7 +183,7 @@
 				});
 				groundBasic.color.setHSV(0.1, 0.45, 0.995);
 
-				ground = new THREE.Mesh(new THREE.PlaneGeometry(15000, 15000, 80, 80), groundBasic);
+				ground = new THREE.Mesh(new THREE.PlaneGeometry(20000, 20000, 80, 80), groundBasic);
 				ground.position.y = 0;
 				ground.rotation.x = (-Math.PI / 2);
 				ground.rotation.z = Math.PI / 2;
@@ -224,25 +229,14 @@
 						// box = new THREE.Mesh(boxGeometry, boxMaterial);
 
 						myWorld.setWorldTreePosition(k);
-						// box.position.x = myWorld.myTreePosition.position.x;
-						// box.position.y = myWorld.myTreePosition.position.y;
-						// box.position.z = myWorld.myTreePosition.position.z;
-						// box.castShadow = true;
-						// box.transparent = true;
-						// collidableMeshList.push(box);
-						// scene.add(box);
-						// }
+						
 						createTrees(myWorld.myTreePosition.position.x, myWorld.myTreePosition.position.y, myWorld.myTreePosition.position.z);
 					}
 				}
 
-				//createBoxes ();
-				//localObject.position.x = 1000;
+				
 				scene.add(localObject);
 
-				// console.log("loader Value " + localObject.position.x);
-
-				//	console.log("checkObj" + checkObj);
 				// ========================wall=================================
 				var texture = THREE.ImageUtils.loadTexture("images/stone2.jpg");
 				texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
@@ -294,7 +288,6 @@
 				collidableMesh.push(car);
 				car.material.wireframe = true;
 				scene.add(car);
-				
 
 				var carGeometry = new THREE.CubeGeometry(100, 100, 100);
 				var carMaterial = new THREE.MeshLambertMaterial({
@@ -319,29 +312,111 @@
 				}
 
 				// ============================================BOX MAKING==============================
-				for (var i = 0; i < 10; i++) {
+				for (var i = 0; i < myWorld.noOfBox(); i++) {
 
-					createBoxes(-4000 + locatio, 100, -4000 + locatio);
-					locatio += 1000;
+					myWorld.setWorldBoxPosition();
+					createBoxes(myWorld.myBoxesPosition.position.x, myWorld.myBoxesPosition.position.y, myWorld.myBoxesPosition.position.z);
+
 				}
-				createTrees();
+
 				//======================================================================================
+				// for (var j = 0; j < 4; j++) {
 
-				// var materialArray = [];
-				// materialArray.push(new THREE.MeshBasicMaterial( { map: THREE.ImageUtils.loadTexture( 'images/background.jpg' ) }));
-				// materialArray.push(new THREE.MeshBasicMaterial( { map: THREE.ImageUtils.loadTexture( 'images/background.jpg' ) }));
-				// materialArray.push(new THREE.MeshBasicMaterial( { map: THREE.ImageUtils.loadTexture( 'images/background.jpg' ) }));
-				// materialArray.push(new THREE.MeshBasicMaterial( { map: THREE.ImageUtils.loadTexture( 'images/background.jpg' ) }));
-				// materialArray.push(new THREE.MeshBasicMaterial( { map: THREE.ImageUtils.loadTexture( 'images/background.jpg' ) }));
-				// materialArray.push(new THREE.MeshBasicMaterial( { map: THREE.ImageUtils.loadTexture( 'images/background.jpg' ) }));
-				// var skyboxGeom = new THREE.CubeGeometry( 5000, 5000, 20000, 1, 1, 1, materialArray );
-				// var skybox = new THREE.Mesh( skyboxGeom, new THREE.MeshFaceMaterial() );
-				// skybox.position.x = 10000;
-				// skybox.position.y = 2000;
-				// skybox.position.z = 5000;
-				// skybox.flipSided = true;
-				// scene.add( skybox );
+					// if (j == 0) {
+						// xWidth = 5000;
+						// zWidth = 20000;
+						// xPos = 10000;
+						// zPos = 0;
+					// }
+					// if (j == 1) {
+						// xWidth = 20000;
+						// zWidth = 5000;
+						// xPos = 0;
+						// zPos = 10000;
+					// }
+					// if (j == 2) {
+						// xWidth = 5000;
+						// zWidth = 20000;
+						// xPos = -10000;
+						// zPos = 0;
+					// }
+					// if (j == 3) {
+						// xWidth = 20000;
+						// zWidth = 5000;
+						// xPos = 0;
+						// zPos = -10000;
+					// }
 
+					// var materialArray = [];
+					// materialArray.push(new THREE.MeshBasicMaterial({
+						// map : THREE.ImageUtils.loadTexture('images/background.jpg')
+					// }));
+					// materialArray.push(new THREE.MeshBasicMaterial({
+						// map : THREE.ImageUtils.loadTexture('images/background.jpg')
+					// }));
+					// materialArray.push(new THREE.MeshBasicMaterial({
+						// map : THREE.ImageUtils.loadTexture('images/background.jpg')
+					// }));
+					// materialArray.push(new THREE.MeshBasicMaterial({
+						// map : THREE.ImageUtils.loadTexture('images/background.jpg')
+					// }));
+					// materialArray.push(new THREE.MeshBasicMaterial({
+						// map : THREE.ImageUtils.loadTexture('images/background.jpg')
+					// }));
+					// materialArray.push(new THREE.MeshBasicMaterial({
+						// map : THREE.ImageUtils.loadTexture('images/background.jpg')
+					// }));
+					// var skyboxGeom = new THREE.CubeGeometry(xWidth, 5000, zWidth, 2, 2, 2, materialArray);
+					// var skybox = new THREE.Mesh(skyboxGeom, new THREE.MeshFaceMaterial());
+					// skybox.position.x = xPos;
+					// skybox.position.y = 2500;
+					// skybox.position.z = zPos;
+					// skybox.flipSided = true;
+					// skybox.side = THREE.BackSide;
+					// scene.add(skybox);
+				// }
+				
+			
+				// sceneCube = new THREE.Scene();
+				var r = "textures/cube/skybox/";
+				var urls = [ r + "px.jpg", r + "nx.jpg",
+							 r + "py.jpg", r + "ny.jpg",
+							 r + "pz.jpg", r + "nz.jpg" ];
+
+				var textureCube = THREE.ImageUtils.loadTextureCube( urls );
+				textureCube.format = THREE.RGBFormat;
+				
+				var shader = THREE.ShaderUtils.lib[ "cube" ];
+				shader.uniforms[ "tCube" ].value = textureCube;
+
+				var material = new THREE.ShaderMaterial( {
+
+					fragmentShader: shader.fragmentShader,
+					vertexShader: shader.vertexShader,
+					uniforms: shader.uniforms,
+					depthWrite: false,
+					side: THREE.BackSide
+
+				} ),
+
+				mesh = new THREE.Mesh( new THREE.CubeGeometry( 100000, 100000, 100000 ), material );
+				mesh.rotation.x = -(Math.PI) / 2;
+				mesh.rotation.z = -(Math.PI) / 2;
+				// mesh.position.x = 10000;
+				//mesh.position.z = zPos;
+				scene.add( mesh );
+				
+				//load a car			 
+//IMPORTANT: be sure to use ./ or it may not load the .bin correctly 
+// new THREE.BinaryLoader().load('VeyronNoUv_bin.js', function(geometry) { 
+    // var orange    = new THREE.MeshLambertMaterial( { color: 0x995500, opacity: 1.0, transparent: false } ); 
+    // var mesh	= new THREE.Mesh( geometry, orange ); 
+    // mesh.scale.x = mesh.scale.y = mesh.scale.z = 10; 
+	// mesh.position.x = 1000;
+    // scene.add( mesh ); 
+    // carr = mesh; 
+// });
+ 
 				//====================================================================================
 
 				// Lights
@@ -415,8 +490,6 @@
 				return bullet;
 
 			}
-
-			
 
 			function onWindowResize() {
 
@@ -711,7 +784,7 @@
 							$(renderer.domElement).fadeOut();
 							$('#hud').fadeOut();
 							$('#intro').fadeIn();
-							$('#intro').html('Ouch! Click to restart...');
+							$('#intro').html('Game Over! Click to restart...');
 							$('body').append('<div id="intro">Click to start</div>');
 							$('#intro').css({
 								width : 1366,

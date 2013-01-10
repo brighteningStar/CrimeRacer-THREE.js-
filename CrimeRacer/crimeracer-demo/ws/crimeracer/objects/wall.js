@@ -16,6 +16,7 @@ CrimeRacer.Wall = function() {
 		width : 100,
 		length : 100
 	};
+	this.textureURL = "images/stone2.jpg";
 }
 var myFunctionXPos = function() {
 	if ( typeof myFunctionXPos.myStaticVar === 'undefined') {
@@ -87,9 +88,9 @@ CrimeRacer.Wall.prototype.getHeight = function() {
 	return this.property.height;
 }
 
-CrimeRacer.Wall.prototype.getWidth = function() {
+CrimeRacer.Wall.prototype.getURL = function() {
 
-	return this.property.width;
+	return this.textureURL;
 }
 
 CrimeRacer.Wall.prototype.getLenth = function() {
