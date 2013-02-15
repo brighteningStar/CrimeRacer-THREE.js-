@@ -4,6 +4,7 @@
 		<title>three.js canvas</title>
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+
 		<style>
 			body {
 
@@ -50,6 +51,15 @@
 				position: absolute;
 				top: 0;
 				z-index: 1002;
+			}
+			#radar {
+				background-color: #EEEEEE;
+				border: 1px solid black;
+				bottom: 10px;
+				left: 10px;
+				position: absolute;
+				z-index: 100;
+				
 			}
 		</style>
 	</head>
@@ -115,7 +125,8 @@
 			var Ccar;
 			var te = 500;
 			var tree;
-			var trees = [];
+			var treesPositionX = [];
+			var treesPositionZ = [];
 			var loader2 = new THREE.ColladaLoader();
 			var bulletOfCar;
 			var wheel;
@@ -128,6 +139,11 @@
 			var xPos = 0;
 			var zPos = 0;
 			var carr;
+			var bulletObj;
+			var treeIndex = 0;
+			var wallIndex = 0;
+			var wallPositionX = [];
+			var wallPositionZ = [];
 			// init();
 
 			// animate();
@@ -151,6 +167,7 @@
 				//scene.add(localObject);
 
 				init();
+
 				animate();
 
 			});
@@ -201,6 +218,8 @@
 
 				});
 
+				
+				$('body').append('<canvas id="radar" width="200" height="200"></canvas>');
 				$('body').append('<div id="hud"><span id="speed">0</span></br>Health: <span id="health">100</span></br>Enemy Car 1: <span id="enemyHealth1">100</span></br>Enemy Car 2: <span id="enemyHealth2">100</span></br>Enemy Car 3: <span id="enemyHealth3">100</span>');
 				// Set up "hurt" flash
 				$('body').append('<div id="hurt"></div>');
@@ -229,13 +248,13 @@
 						// box = new THREE.Mesh(boxGeometry, boxMaterial);
 
 						myWorld.setWorldTreePosition(k);
-						
+
 						createTrees(myWorld.myTreePosition.position.x, myWorld.myTreePosition.position.y, myWorld.myTreePosition.position.z);
 					}
 				}
 
-				
 				scene.add(localObject);
+				//createBulletObj();
 
 				// ========================wall=================================
 				var texture = THREE.ImageUtils.loadTexture("images/stone2.jpg");
@@ -260,6 +279,9 @@
 						box.position.x = myWorld.myWall.position.x;
 						box.position.y = myWorld.myWall.position.y;
 						box.position.z = myWorld.myWall.position.z;
+						// wallPositionX[wallInddex] = myWorld.myWall.position.x;
+						// wallPositionZ[wallIndex] = myWorld.myWall.position.z;
+						wallIndex++;
 						box.castShadow = true;
 						box.receiveShadow = true;
 
@@ -270,7 +292,7 @@
 				texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
 				texture.repeat.set(.5, .5);
 
-				var carGeometry = new THREE.CubeGeometry(400, 100, 150);
+				var carGeometry = new THREE.CubeGeometry(400, 10, 150);
 				var carMaterial = new THREE.MeshLambertMaterial({
 					color : 0x000000,
 					//shading : THREE.FlatShading,
@@ -281,7 +303,7 @@
 				car = new THREE.Mesh(carGeometry, carMaterial);
 				myWorld.setWorldCar();
 				car.position.x = localObject.position.x + 10;
-				car.position.y = localObject.position.y;
+				car.position.y = localObject.position.y + 30;
 				car.position.z = localObject.position.z;
 				car.castShoadow = true;
 				car.receiveShadow = true;
@@ -320,103 +342,30 @@
 				}
 
 				//======================================================================================
-				// for (var j = 0; j < 4; j++) {
 
-					// if (j == 0) {
-						// xWidth = 5000;
-						// zWidth = 20000;
-						// xPos = 10000;
-						// zPos = 0;
-					// }
-					// if (j == 1) {
-						// xWidth = 20000;
-						// zWidth = 5000;
-						// xPos = 0;
-						// zPos = 10000;
-					// }
-					// if (j == 2) {
-						// xWidth = 5000;
-						// zWidth = 20000;
-						// xPos = -10000;
-						// zPos = 0;
-					// }
-					// if (j == 3) {
-						// xWidth = 20000;
-						// zWidth = 5000;
-						// xPos = 0;
-						// zPos = -10000;
-					// }
-
-					// var materialArray = [];
-					// materialArray.push(new THREE.MeshBasicMaterial({
-						// map : THREE.ImageUtils.loadTexture('images/background.jpg')
-					// }));
-					// materialArray.push(new THREE.MeshBasicMaterial({
-						// map : THREE.ImageUtils.loadTexture('images/background.jpg')
-					// }));
-					// materialArray.push(new THREE.MeshBasicMaterial({
-						// map : THREE.ImageUtils.loadTexture('images/background.jpg')
-					// }));
-					// materialArray.push(new THREE.MeshBasicMaterial({
-						// map : THREE.ImageUtils.loadTexture('images/background.jpg')
-					// }));
-					// materialArray.push(new THREE.MeshBasicMaterial({
-						// map : THREE.ImageUtils.loadTexture('images/background.jpg')
-					// }));
-					// materialArray.push(new THREE.MeshBasicMaterial({
-						// map : THREE.ImageUtils.loadTexture('images/background.jpg')
-					// }));
-					// var skyboxGeom = new THREE.CubeGeometry(xWidth, 5000, zWidth, 2, 2, 2, materialArray);
-					// var skybox = new THREE.Mesh(skyboxGeom, new THREE.MeshFaceMaterial());
-					// skybox.position.x = xPos;
-					// skybox.position.y = 2500;
-					// skybox.position.z = zPos;
-					// skybox.flipSided = true;
-					// skybox.side = THREE.BackSide;
-					// scene.add(skybox);
-				// }
-				
-			
 				// sceneCube = new THREE.Scene();
 				var r = "textures/cube/skybox/";
-				var urls = [ r + "px.jpg", r + "nx.jpg",
-							 r + "py.jpg", r + "ny.jpg",
-							 r + "pz.jpg", r + "nz.jpg" ];
+				var urls = [r + "px.jpg", r + "nx.jpg", r + "py.jpg", r + "ny.jpg", r + "pz.jpg", r + "nz.jpg"];
 
-				var textureCube = THREE.ImageUtils.loadTextureCube( urls );
+				var textureCube = THREE.ImageUtils.loadTextureCube(urls);
 				textureCube.format = THREE.RGBFormat;
-				
-				var shader = THREE.ShaderUtils.lib[ "cube" ];
-				shader.uniforms[ "tCube" ].value = textureCube;
 
-				var material = new THREE.ShaderMaterial( {
+				var shader = THREE.ShaderUtils.lib["cube"];
+				shader.uniforms["tCube"].value = textureCube;
 
-					fragmentShader: shader.fragmentShader,
-					vertexShader: shader.vertexShader,
-					uniforms: shader.uniforms,
-					depthWrite: false,
-					side: THREE.BackSide
+				var material = new THREE.ShaderMaterial({
 
-				} ),
+					fragmentShader : shader.fragmentShader,
+					vertexShader : shader.vertexShader,
+					uniforms : shader.uniforms,
+					depthWrite : false,
+					side : THREE.BackSide
 
-				mesh = new THREE.Mesh( new THREE.CubeGeometry( 100000, 100000, 100000 ), material );
+				}), mesh = new THREE.Mesh(new THREE.CubeGeometry(100000, 100000, 100000), material);
 				mesh.rotation.x = -(Math.PI) / 2;
 				mesh.rotation.z = -(Math.PI) / 2;
-				// mesh.position.x = 10000;
-				//mesh.position.z = zPos;
-				scene.add( mesh );
-				
-				//load a car			 
-//IMPORTANT: be sure to use ./ or it may not load the .bin correctly 
-// new THREE.BinaryLoader().load('VeyronNoUv_bin.js', function(geometry) { 
-    // var orange    = new THREE.MeshLambertMaterial( { color: 0x995500, opacity: 1.0, transparent: false } ); 
-    // var mesh	= new THREE.Mesh( geometry, orange ); 
-    // mesh.scale.x = mesh.scale.y = mesh.scale.z = 10; 
-	// mesh.position.x = 1000;
-    // scene.add( mesh ); 
-    // carr = mesh; 
-// });
- 
+				scene.add(mesh);
+
 				//====================================================================================
 
 				// Lights
@@ -486,7 +435,7 @@
 
 				bullets.push(bullet);
 				scene.add(bullet);
-
+				//createBulletObj();
 				return bullet;
 
 			}
@@ -531,21 +480,6 @@
 							// $('#health').html("Finished");
 						} else if (obj != car) {
 
-							// if(index == 0){
-							// $('#enemyHealth1').html(myWorld.enemyHealthControl(index));
-							// if (myWorld.enemyHealthControl() <= 0)
-							// $('#enemyHealth1').html("Finished");
-							// }
-							// else if(index == 1){
-							// $('#enemyHealth2').html(myWorld.enemyHealthControl(index));
-							// if (myWorld.enemyHealthControl() <= 0)
-							// $('#enemyHealth2').html("Finished");
-							// }
-							// else if(index == 2){
-							// $('#enemyHealth3').html(myWorld.enemyHealthControl(index));
-							// if (myWorld.enemyHealthControl() <= 0)
-							// $('#enemyHealth3').html("Finished");
-							// }
 
 							Nspeed = myWorld.setEnemyCarSpeed(timer, true, index);
 						}
@@ -562,6 +496,61 @@
 				// $('#time').html(timer + "s");
 
 			}
+
+			function mapDraw() {
+				var c = document.getElementById("radar");
+				var ctx = c.getContext("2d");
+				
+				
+				ctx.clearRect(0, 0, 200, 200);
+				var xPos = localObject.position.x;
+				var yPos = localObject.position.z;
+
+				var xCor = 20000;
+				var yCor = 20000;
+				
+				
+				ctx.fillStyle = '#0000FF';
+				ctx.fillRect(((yPos * 180) / 20000) + 90, (-(xPos * 180) / 20000) + 90, 10, 10);
+
+				ctx.stroke();
+				
+				for (var i = 0; i < myWorld.noOfEnemies(); i++){
+					
+					var xPosEnemy = enemyCarr[i].position.x;
+					var yPosEnemy = enemyCarr[i].position.z;
+					
+					ctx.fillStyle = '#FF00FF';
+					ctx.fillRect(((yPosEnemy * 180) / 20000) + 90, (-(xPosEnemy * 180) / 20000) + 90, 10, 10);
+
+					ctx.stroke();
+				}
+				
+				for (var k = 0; k < treesPositionX.length; k++){
+				
+					var xPosTree = treesPositionX[k];
+					var yPosTree = treesPositionZ[k];
+					
+					ctx.fillStyle = '#00FFFF';
+					ctx.fillRect(((yPosTree * 180) / 20000) + 90, (-(xPosTree * 180) / 20000) + 90, 10, 10);
+
+					ctx.stroke();
+				}
+				
+				// for (var k = 0; k < wallPositionX.length; k++){
+				
+					// var xPosWall = wallPositionX[k];
+					// var yPosWall = wallPositionZ[k];
+					
+					// ctx.fillStyle = '#FFFFFF';
+					// ctx.fillRect(((yPosWall * 180) / 20000) + 90, (-(xPosWall * 180) / 20000) + 90, 10, 10);
+
+					// ctx.stroke();
+				// }
+
+			}
+			
+			
 
 			function animate(runAnim) {
 
@@ -634,7 +623,39 @@
 				scene.add(box);
 			}
 
+			function createBulletObj() {
+				loader2.load('obj/bullet.dae', function colladaReady(collada) {
+					bulletObj = collada.scene;
+
+					bulletObj.scale.x = bulletObj.scale.y = bulletObj.scale.z = 30;
+					bulletObj.updateMatrix();
+					bulletObj.position.x = 0;
+					bulletObj.position.y = 0;
+					bulletObj.position.z = 0;
+
+					//bulletObj.rotation.x = -(Math.PI / 2);
+
+					bulletObj.rotation.y = (Math.PI / 2);
+
+					//localObject.rotation.z = -(Math.PI / 2);
+					//collidableMeshList3 = localObject;
+					//console.log(collidableMeshList3);
+					scene.add(bulletObj);
+
+				});
+			}
+
+			function createBulletObjPosition(xPos, yPos, zPos) {
+				bulletObj.position.x = xPos;
+				bulletObj.position.y = yPos;
+				bulletObj.position.z = zPos;
+			}
+
 			function createTrees(xPos, yPos, zPos) {
+				//mapDrawTree(zPos, xPos);
+				treesPositionX [treeIndex] = xPos;
+				treesPositionZ [treeIndex] = zPos;
+				treeIndex++;
 				var texture1 = new THREE.Texture();
 
 				var loader = new THREE.ImageLoader();
@@ -719,6 +740,7 @@
 
 			function render() {
 
+				mapDraw();
 				for (var j = enemyCarr.length - 1; j >= 0; j--) {
 
 					enemy = enemyCarr[j];
@@ -744,9 +766,13 @@
 				var delta = cloc.getDelta();
 
 				var bspeed = delta * 3000;
+
 				var hit = false;
+
 				for (var i = bullets.length - 1; i >= 0; i--) {
 					var b = bullets[i];
+					//createBulletObjPosition(b.position.x, 20, b.position.z);
+					//scene.remove(bulletObj);
 
 					d = b.ray.direction;
 
@@ -764,6 +790,8 @@
 						//b.rotation.x = Math.PI / 2;
 						b.translateX(bspeed * (d.x));
 						b.translateZ(bspeed * (d.z));
+						// bulletObj.translateX(bspeed * (d.x));
+						// bulletObj.translateZ(bspeed * (d.z));
 
 					}
 
@@ -771,6 +799,8 @@
 						//b.rotation.x = Math.PI / 2;
 						b.translateX(bspeed * -(d.x));
 						b.translateZ(bspeed * -(d.z));
+						// bulletObj.translateX(bspeed * -(d.x));
+						// bulletObj.translateZ(bspeed * -(d.z));
 
 					}
 					dist = distance(b.position.x, b.position.z, localObject.position.x, localObject.position.z);
@@ -782,6 +812,7 @@
 						if (myWorld.healthControl() <= 0) {
 							runAnim = false;
 							$(renderer.domElement).fadeOut();
+							$('#radar').fadeOut();
 							$('#hud').fadeOut();
 							$('#intro').fadeIn();
 							$('#intro').html('Game Over! Click to restart...');
@@ -796,6 +827,7 @@
 						}
 						bullets.splice(i, 1);
 						scene.remove(b);
+						//bulletObj.position.x = 10000;
 						$('#hurt').fadeOut(350);
 
 					}

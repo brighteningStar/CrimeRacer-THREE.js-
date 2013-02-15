@@ -8,7 +8,7 @@ CrimeRacer.World = function() {
 	this.noOfBlocksPerWall = 200;
 	this.carSpeedCkeck
 	this.noOfEnemy = 3;
-	this.noOfBoxes = 10;
+	this.noOfBoxes = 15;
 	
 	this.enemy = {
 		enemyCar1 : new CrimeRacer.enemyCar,
