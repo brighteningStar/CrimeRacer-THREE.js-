@@ -69,6 +69,7 @@
 
 		<script src="threejs/three/jquery-1.7.2.min.js"></script>
 		<script src="threejs/three/three.min.js"></script>
+		<script src="threejs/three/ImprovedNoise.js"></script>
 		<script src="threejs/three/ShaderExtras.js"></script>
 		<script src="threejs/three/CollisionUtils.js"></script>
 		<script src="threejs/three/Collisions.js"></script>
@@ -144,6 +145,9 @@
 			var wallIndex = 0;
 			var wallPositionX = [];
 			var wallPositionZ = [];
+			var slopeGround ;
+			var worldWidth = 256, worldDepth = 256,
+			worldHalfWidth = worldWidth / 2, worldHalfDepth = worldDepth / 2;
 			// init();
 
 			// animate();
@@ -154,8 +158,8 @@
 				localObject.scale.x = localObject.scale.y = localObject.scale.z = 2;
 				localObject.updateMatrix();
 				localObject.position.x = 500;
-				localObject.position.x = 0;
-				localObject.position.x = 500;
+				localObject.position.y = 5;
+				localObject.position.z = 500;
 
 				localObject.rotation.x = -(Math.PI / 2);
 
@@ -189,10 +193,10 @@
 				scene = new THREE.Scene();
 				//scene.fog = new THREE.FogExp2(0xD6F1FF, 0.0003);
 				// color, density
-
-				var texture = THREE.ImageUtils.loadTexture("images/road.jpg");
+				data = generateHeight( worldWidth, worldDepth );
+				var texture = THREE.ImageUtils.loadTexture("images/road2.jpg");
 				texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
-				texture.repeat.set(3, 3);
+				texture.repeat.set(50, 50);
 
 				groundBasic = new THREE.MeshLambertMaterial({
 					color : 0x473e34,
@@ -200,15 +204,24 @@
 				});
 				groundBasic.color.setHSV(0.1, 0.45, 0.995);
 
-				ground = new THREE.Mesh(new THREE.PlaneGeometry(20000, 20000, 80, 80), groundBasic);
-				ground.position.y = 0;
-				ground.rotation.x = (-Math.PI / 2);
-				ground.rotation.z = Math.PI / 2;
+				ground = new THREE.Mesh(new THREE.PlaneGeometry(30000, 30000, worldWidth-1, worldDepth-1), groundBasic);
+				console.log(ground.geometry.vertices.length);
+				
+				ground.position.y = -20;
+			//	ground.rotation.x = (-Math.PI / 2);
+				//ground.rotation.z = (- Math.PI / 2);
 				//ground.rotation.y = -Math.PI / 2;
 				ground.receiveShadow = true;
-
+				ground.dynamic = true;
+				
 				scene.add(ground);
+				ground.geometry.applyMatrix( new THREE.Matrix4().makeRotationX( - Math.PI / 4 ) );
 
+				for ( var i = 0, l = ground.geometry.vertices.length; i < l; i ++ ) {
+
+					ground.geometry.vertices[ i ].y = data[ i ] * 2;
+
+				}
 				$(document).click(function(e) {
 					e.preventDefault
 					if (e.which === 1) {// Left click only
@@ -287,6 +300,8 @@
 
 					}
 				}
+				
+				//slope();
 
 				var texture = THREE.ImageUtils.loadTexture("images/car.jpg");
 				texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
@@ -337,7 +352,7 @@
 				for (var i = 0; i < myWorld.noOfBox(); i++) {
 
 					myWorld.setWorldBoxPosition();
-					createBoxes(myWorld.myBoxesPosition.position.x, myWorld.myBoxesPosition.position.y, myWorld.myBoxesPosition.position.z);
+					//createBoxes(myWorld.myBoxesPosition.position.x, myWorld.myBoxesPosition.position.y, myWorld.myBoxesPosition.position.z);
 
 				}
 
@@ -439,7 +454,34 @@
 				return bullet;
 
 			}
+			function generateHeight( width, height ) {
 
+				var size = width * height, data = new Float32Array( size ),
+				perlin = new ImprovedNoise(), quality = 1, z = Math.random() * 100;
+
+				for ( var i = 0; i < size; i ++ ) {
+
+					data[ i ] = 0
+
+				}
+
+				for ( var j = 0; j < 4; j ++ ) {
+
+					for ( var i = 0; i < size; i ++ ) {
+
+						var x = i % width, y = ~~ ( i / width );
+						data[ i ] += Math.abs( perlin.noise( x / quality, y / quality, z ) * quality * 1.75 );
+
+
+					}
+
+					quality *= 5;
+
+				}
+
+				return data;
+
+			}
 			function onWindowResize() {
 
 				camera.left = window.innerWidth / -2;
@@ -555,7 +597,7 @@
 			function animate(runAnim) {
 
 				requestAnimationFrame(animate);
-
+				
 				collision(car, collidableMeshList);
 				collision(car, enemyCarr);
 
@@ -741,6 +783,9 @@
 			function render() {
 
 				mapDraw();
+				for(var k = 0; k < ground.geometry.vertices.length; k++){
+				localObject.position.y = ground.geometry.vertices[k].y + 2;
+				}
 				for (var j = enemyCarr.length - 1; j >= 0; j--) {
 
 					enemy = enemyCarr[j];
@@ -878,6 +923,7 @@
 					}
 
 				}
+				//localObject.rotation.y = -.5
 				var rotationAngle = 0.05 * Math.abs(speed / 10);
 				if (rotationAngle > 0.05)
 					rotationAngle = 0.05;

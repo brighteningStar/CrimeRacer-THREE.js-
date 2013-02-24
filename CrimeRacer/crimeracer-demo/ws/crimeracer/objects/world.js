@@ -5,7 +5,7 @@ CrimeRacer.World = function() {
 	this.noOfTrees = 30;
 	this.noOfSideForTree = 2;
 	this.noOfSides = 4;
-	this.noOfBlocksPerWall = 200;
+	this.noOfBlocksPerWall = 300;
 	this.carSpeedCkeck
 	this.noOfEnemy = 3;
 	this.noOfBoxes = 15;
@@ -39,15 +39,15 @@ CrimeRacer.World = function() {
 		id : 2
 	};
 	this.leftWallPos = {
-		x : -10000,
+		x : -7000,
 		y : 100,
-		z : -10000,
+		z : -7000,
 		id : 3
 	};
 	this.rightWallPos = {
-		x : -10000,
+		x : -7000,
 		y : 100,
-		z : 10000,
+		z : 7000,
 		id : 4
 	};
 
