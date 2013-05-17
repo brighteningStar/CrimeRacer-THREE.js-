@@ -22,9 +22,10 @@ var myFunctionBoxPos = function() {
 }
 CrimeRacer.Boxes.prototype.setPos = function(xPos, yPos, zPos) {
 	var boxPos = myFunctionBoxPos();
-	this.position.x = xPos + boxPos;
+	this.position.x = Math.floor((Math.random() * 7000)+ (-7000));
 	this.position.y = yPos;
-	this.position.z = zPos + boxPos;
+	this.position.z = Math.floor((Math.random()* -7000)+1);
+
 }
 
 

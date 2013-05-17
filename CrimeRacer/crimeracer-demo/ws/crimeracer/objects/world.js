@@ -2,13 +2,13 @@ var CrimeRacer = CrimeRacer || {};
 
 CrimeRacer.World = function() {
 
-	this.noOfTrees = 30;
+	this.noOfTrees = 26;
 	this.noOfSideForTree = 2;
 	this.noOfSides = 4;
-	this.noOfBlocksPerWall = 300;
+	this.noOfBlocksPerWall = 200;
 	this.carSpeedCkeck
 	this.noOfEnemy = 3;
-	this.noOfBoxes = 15;
+	this.noOfBoxes = 10;
 	
 	this.enemy = {
 		enemyCar1 : new CrimeRacer.enemyCar,
@@ -27,15 +27,15 @@ CrimeRacer.World = function() {
 	this.myTree = new CrimeRacer.Tree;
 
 	this.frontWallPos = {
-		x : 10000,
+		x : 7000,
 		y : 100,
-		z : -10000,
+		z : -7000,
 		id : 1
 	};
 	this.backWallPos = {
-		x : -10000,
+		x : -7000,
 		y : 100,
-		z : -10000,
+		z : -7000,
 		id : 2
 	};
 	this.leftWallPos = {
@@ -52,14 +52,14 @@ CrimeRacer.World = function() {
 	};
 
 	this.rightTreeRow = {
-		x : 8000,
+		x : 7000,
 		y : 80,
 		z : 3200,
 		id : 1
 	};
 
 	this.leftTreeRow = {
-		x : 8000,
+		x : 7000,
 		y : 80,
 		z : -3200,
 		id : 2
@@ -162,15 +162,15 @@ CrimeRacer.World.prototype.setWorldEnemyCar = function(EnemyCarId) {
 
 	if (EnemyCarId == 1) {
 		this.enemyCar = this.enemy.enemyCar1;
-		this.enemyCar.setPos(-1000, 60, -1000);
+		this.enemyCar.setPos(-1000, 0, -1000);
 	}
 	if (EnemyCarId == 2) {
 		this.enemyCar = this.enemy.enemyCar2;
-		this.enemyCar.setPos(2000, 60, 1000);
+		this.enemyCar.setPos(2000, 0, 1000);
 	}
 	if (EnemyCarId == 3) {
 		this.enemyCar = this.enemy.enemyCar3;
-		this.enemyCar.setPos(-3000, 60, 1000);
+		this.enemyCar.setPos(-3000, 0, 1000);
 	}
 
 }
@@ -219,7 +219,7 @@ CrimeRacer.World.prototype.setEnemyCarSpeed = function(timer, hit, id) {
 
 }
 
-CrimeRacer.World.prototype.setEnemyCarRotation = function(timer, rotation, id) {
+CrimeRacer.World.prototype.setEnemyCarRotation = function(move, rotation, id) {
 	if (id == 0) {
 		this.enemyCar = this.enemy.enemyCar1;
 
@@ -236,7 +236,7 @@ CrimeRacer.World.prototype.setEnemyCarRotation = function(timer, rotation, id) {
 	if (this.enemyCar.rotationalAngle > 0.05)
 		this.enemyCar.rotationalAngle = 0.05;
 
-	if (timer >= 0 && timer <= 30) {
+	if (move == 'L') {
 		rotation += this.enemyCar.rotationalAngle;
 		if (rotation > 6) {
 			this.rotation -= 6;
@@ -244,10 +244,18 @@ CrimeRacer.World.prototype.setEnemyCarRotation = function(timer, rotation, id) {
 		}
 		return rotation;
 	}
-	if (timer >= 31 && timer <= 60) {
+	if (move == 'R') {
 		rotation -= this.enemyCar.rotationalAngle;
 		if (rotation < 0) {
 			rotation = 6 + rotation;
+			return rotation;
+		}
+		return rotation;
+	}
+	if (move == 'S') {
+		rotation -= this.enemyCar.rotationalAngle;
+		if (rotation < 0) {
+			rotation = 0;
 			return rotation;
 		}
 		return rotation;
