@@ -179,6 +179,7 @@
 			var enemy2;
 			var enemy3;
 			var enemyModels = [];
+			var cylinder;
 			
 
 			// animate();
@@ -288,6 +289,29 @@
 				ground.dynamic = true;
 				//collidableMesh.push(ground);
 				scene.add(ground);
+				
+				
+				
+				var loader = new THREE.OBJLoader();
+				loader.addEventListener('load', function(event) {
+
+					var object = event.content;
+
+					// for (var i = 0, l = object.children.length; i < l; i++) {
+
+						// object.children[i].material.map = texture1;
+
+					// }
+					object.scale.x = object.scale.y = object.scale.z = 20;
+					object.position.x = 500;
+					object.position.y = 10;
+					object.position.z = 1000;
+					//object.rotation.z = -(Math.PI) / 2;
+					//objects.push(object);
+					scene.add(object);
+
+				});
+				loader.load('obj/missiles.obj');
 				//ground.geometry.applyMatrix( new THREE.Matrix4().makeRotationX( - Math.PI / 4 ) );
 
 				// for ( var i = 0, l = ground.geometry.vertices.length; i < l; i ++ ) {
@@ -342,10 +366,12 @@
 					}
 
 				});
+				// var sound = new Sound( [ 'sounds/358232_j_s_song.mp3', 'sounds/358232_j_s_song.ogg' ], 275, 1 );;
+				// sound.play();
 
 				//createMines(0, 0, 0);
 				//$('body').append('<canvas id="radar" width="200" height="200"></canvas>');
-				$('body').append('<div id="hud"><span id="speed">0</span></br>Health: <span id="health">100</span></br>Enemy Car 1: <span id="enemyHealth1">100</span></br>Enemy Car 2: <span id="enemyHealth2">100</span></br>Enemy Car 3: <span id="enemyHealth3">100</span>');
+				//$('body').append('<div id="hud"><span id="speed">0</span></br>Health: <span id="health">100</span></br>Enemy Car 1: <span id="enemyHealth1">100</span></br>Enemy Car 2: <span id="enemyHealth2">100</span></br>Enemy Car 3: <span id="enemyHealth3">100</span>');
 				// Set up "hurt" flash
 				$('body').append('<div id="hurt"></div>');
 				$('#hurt').css({
@@ -534,6 +560,15 @@
 					obj = localObject;
 					obj2 = enemy;
 				}
+				
+				//cylinder = new THREE.Mesh(new THREE.CylinderGeometry(10, 0, 150, 50, 50, false), new THREE.MeshNormalMaterial());
+				//cylinder.overdraw = true;
+				// cylinder.position.x = 500;
+				// cylinder.position.y = 20;
+				// cylinder.position.z = 500;
+				//cylinder.rotation = enemy.rotation.x + enemy.rotation.z;
+				
+				//scene.add(cylinder);
 
 				var bullet = new THREE.Mesh(bulletGeo, bulletMaterial);
 				bullet.position.set(obj.position.x, (obj.position.y + 15) * 0.8, obj.position.z);
@@ -548,7 +583,10 @@
 				}
 
 				bullet.owner = obj;
-
+				
+				
+				
+//cylinder.rotation.z =  0;
 				bullets.push(bullet);
 				scene.add(bullet);
 				//createBulletObj();
@@ -654,34 +692,43 @@
 				var ctx = Canvas.getContext('2d');
 
 				//speed = myWorld.CarMove("W", false);
+				
+		
 
-				ctx.clearRect(0, 0, 578, 200);
+				//ctx.clearRect(0, 0, 578, 200);
+						var imageObj = new Image();
+
+      imageObj.onload = function() {
+        ctx.drawImage(imageObj, 0, 0);
+      };
+      imageObj.src = 'images/speedometer.jpg';
+				
 
 				var speed2 = speed + 3;
 				if (speed2 < 0)
 					speed2 = 0;
 
-				ctx.beginPath();
-				ctx.arc(70, 100, 75, 0, Math.PI, true);
-				ctx.closePath();
-				ctx.lineWidth = 5;
-				ctx.fillStyle = 'red';
-				ctx.fill();
-				ctx.strokeStyle = '#550000';
-				ctx.stroke();
+				// ctx.beginPath();
+				// ctx.arc(70, 100, 75, 0, Math.PI, true);
+				// ctx.closePath();
+				// ctx.lineWidth = 5;
+				// ctx.fillStyle = 'red';
+				// ctx.fill();
+				// ctx.strokeStyle = '#550000';
+				// ctx.stroke();
 
 				ctx.beginPath();
 				ctx.moveTo(70, 100);
 				ctx.lineTo(speed, -(speed - speedGain - 25));
 				//console.log("speed in speedometer: " + speed);
 				ctx.stroke();
-				// ctx.rect(0,0,speed,speed);
-				// ctx.fillStyle="red";
-				// ctx.fill();
-				ctx.strokeStyle = "#003300";
-				ctx.font = '32px KulminoituvaRegular';
-				ctx.textBaseline = 'bottom';
-				ctx.strokeText(speed, 55, 90);
+				// // ctx.rect(0,0,speed,speed);
+				// // ctx.fillStyle="red";
+				// // ctx.fill();
+				// ctx.strokeStyle = "#003300";
+				// ctx.font = '32px KulminoituvaRegular';
+				// ctx.textBaseline = 'bottom';
+				// ctx.strokeText(speed, 55, 90);
 
 			}
 
@@ -1128,8 +1175,10 @@
 
 					if (!hit && b.owner != localObject) {
 						//b.rotation.x = Math.PI / 2;
-						b.translateX(bspeed * (d.x));
-						b.translateZ(bspeed * (d.z));
+						//b.translateX(bspeed * (d.x));
+						b.position.x += bspeed * (d.x);
+						b.position.z += bspeed * (d.z);
+						//b.translateZ(bspeed * (d.z));
 						// bulletObj.translateX(bspeed * (d.x));
 						// bulletObj.translateZ(bspeed * (d.z));
 
@@ -1137,8 +1186,11 @@
 
 					if (!hit && b.owner == localObject) {
 						//b.rotation.x = Math.PI / 2;
-						b.translateX(bspeed * -(d.x));
-						b.translateZ(bspeed * -(d.z));
+						// b.translateX(bspeed * -(d.x));
+						// b.translateZ(bspeed * -(d.z));
+						b.position.x += bspeed * -(d.x);
+						b.position.z += bspeed * -(d.z);
+						
 						// bulletObj.translateX(bspeed * -(d.x));
 						// bulletObj.translateZ(bspeed * -(d.z));
 
