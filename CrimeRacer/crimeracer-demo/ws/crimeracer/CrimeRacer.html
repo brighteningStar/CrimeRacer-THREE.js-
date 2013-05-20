@@ -6,6 +6,7 @@
 		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 		<canvas id="radar" width="200" height="200"></canvas>
 		<canvas id="speedometer" width="150" height="100"></canvas>
+		<canvas id="health11" width="150" height="20"></canvas>
 		<style>
 			body {
 
@@ -66,6 +67,15 @@
 				background-color: #EEEEEE;
 				border: 1px solid black;
 				bottom: 550px;
+				left: 600px;
+				position: absolute;
+				z-index: 100;
+				opacity: .5;
+			}
+			#health11 {
+				background-color: #EEEEEE;
+				border: 1px solid black;
+				bottom: 520px;
 				left: 600px;
 				position: absolute;
 				z-index: 100;
@@ -368,7 +378,7 @@
 				});
 				// var sound = new Sound( [ 'sounds/358232_j_s_song.mp3', 'sounds/358232_j_s_song.ogg' ], 275, 1 );;
 				// sound.play();
-
+				
 				//createMines(0, 0, 0);
 				//$('body').append('<canvas id="radar" width="200" height="200"></canvas>');
 				//$('body').append('<div id="hud"><span id="speed">0</span></br>Health: <span id="health">100</span></br>Enemy Car 1: <span id="enemyHealth1">100</span></br>Enemy Car 2: <span id="enemyHealth2">100</span></br>Enemy Car 3: <span id="enemyHealth3">100</span>');
@@ -722,15 +732,39 @@
 				ctx.lineTo(speed, -(speed - speedGain - 25));
 				//console.log("speed in speedometer: " + speed);
 				ctx.stroke();
-				// // ctx.rect(0,0,speed,speed);
-				// // ctx.fillStyle="red";
-				// // ctx.fill();
-				// ctx.strokeStyle = "#003300";
-				// ctx.font = '32px KulminoituvaRegular';
-				// ctx.textBaseline = 'bottom';
-				// ctx.strokeText(speed, 55, 90);
+				
 
 			}
+			
+			function healthDraw(health11){
+				var Canvas = document.getElementById('health11');
+				var ctx = Canvas.getContext('2d');
+				
+				
+				
+				ctx.clearRect(0, 0, 150, 20);
+				ctx.save();
+				if(health11 > 30)
+					ctx.fillStyle="green";
+				else
+					ctx.fillStyle="red";
+				
+				ctx.fillRect(0,0,health11,100);
+				
+				// ctx.fill();
+				
+				
+				ctx.strokeStyle = "#330000";
+				ctx.font = '16px CURSIVE';
+				ctx.textBaseline = 'hanging';
+				ctx.strokeText('HEALTH', 50, 0);
+				ctx.restore();
+				}
+			
+				
+		
+		
+			
 
 			function mapDraw() {
 				var Canvas = document.getElementById('radar');
@@ -785,9 +819,14 @@
 
 			function animate(runAnim) {
 
-				particleSystem.position.x = 1000;
+				particleSystem.position.x = Math.random() * 7000;
 				particleSystem.position.z = 500;
 				particleSystem.position.y = pos--;
+				
+				
+				// var parti = particleSystem;
+				// scene.add(parti);
+				// //scene.remove(parti);
 
 				// particleSystem.rotation.x = Math.random() * Math.PI * .8;
 				// particleSystem.rotation.z = Math.random() * Math.PI * .8;
@@ -1115,7 +1154,10 @@
 				
 				
 				speedDraw();
+				healthDraw(myWorld.healthControl());
+				//console.log(myWorld.healthControl() + "heath");
 				mapDraw();
+				
 
 				//createMines(localObject.position.x, 0, localObject.position.z);
 				ground.geometry.computeBoundingBox();
@@ -1195,12 +1237,14 @@
 						// bulletObj.translateZ(bspeed * -(d.z));
 
 					}
+					
+					
 					dist = distance(b.position.x, b.position.z, localObject.position.x, localObject.position.z);
 					if (dist < 150 && b.owner != localObject) {
 						$('#hurt').fadeIn(75);
-
+						myWorld.healthControlreduce();
 						//speed = myWorld.CarMove("W", true);
-						$('#health').html(myWorld.healthControl());
+						//$('#health').html(myWorld.healthControl());
 						if (myWorld.healthControl() <= 0) {
 							runAnim = false;
 							$(renderer.domElement).fadeOut();

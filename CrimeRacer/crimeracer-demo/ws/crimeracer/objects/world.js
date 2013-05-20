@@ -308,6 +308,12 @@ CrimeRacer.World.prototype.healthControl = function() {
 
 }
 
+CrimeRacer.World.prototype.healthControlreduce = function() {
+
+	return this.myCar.reduceHealth();
+
+}
+
 
 CrimeRacer.World.prototype.enemyHealthControl = function(id) {
 
