@@ -307,7 +307,7 @@
         // animate();
 
 		
-        loader2.load('obj/us/us_police_car.dae', function colladaReady(collada) {
+        loader2.load('objc/us/us_police_car.dae', function colladaReady(collada) {
             localObject = collada.scene;
 
             localObject.scale.x = localObject.scale.y = localObject.scale.z = 2;
@@ -1165,7 +1165,7 @@
             //myWorld.setWorldCar();
 
             var loader = new THREE.ColladaLoader();
-            loader.load('obj/mine.dae', function colladaReady(collada) {
+            loader.load('objc/mine.dae', function colladaReady(collada) {
                 mines = collada.scene;
 
                 mines.scale.x = mines.scale.y = mines.scale.z = .5;
@@ -1251,7 +1251,7 @@
                     scene.add(object);
 
                 });
-                loader.load('obj/LP670/lp670.obj', 'obj/car/lp670.mtl');
+                loader.load('objc/LP670/lp670.obj', 'objc/car/lp670.mtl');
 				
                 var pointGeo = new THREE.CubeGeometry(50, 100, 50);
                 var pointMaterial = new THREE.MeshLambertMaterial({
@@ -1302,7 +1302,7 @@
                 scene.add(object);
 
             });
-            loader.load('obj/missiles.obj');
+            loader.load('objc/missiles.obj');
         }
         function createBoxes(xPos, yPos, zPos) {
             var texture = new THREE.Texture();
@@ -1314,7 +1314,7 @@
                 texture.needsUpdate = true;
 
             });
-            loader.load('obj/crate.gif');
+            loader.load('objc/crate.gif');
 
             // model
 
@@ -1337,7 +1337,7 @@
                 scene.add(object);
 
             });
-            loader.load('obj/Crate Box/crate.obj');
+            loader.load('objc/Crate Box/crate.obj');
 
             var boxGeometry = new THREE.CubeGeometry(190, 190, 190);
             var boxMaterial = new THREE.MeshLambertMaterial({
@@ -1360,7 +1360,7 @@
         }
 
         function createBulletObj() {
-            loader2.load('obj/bullet.dae', function colladaReady(collada) {
+            loader2.load('objc/bullet.dae', function colladaReady(collada) {
                 bulletObj = collada.scene;
 
                 bulletObj.scale.x = bulletObj.scale.y = bulletObj.scale.z = 30;
@@ -1401,7 +1401,7 @@
                 texture1.needsUpdate = true;
 
             });
-            loader.load('obj/normal_L1010014.jpg');
+            loader.load('objc/normal_L1010014.jpg');
 
             // model
 
@@ -1424,9 +1424,9 @@
                 scene.add(object);
 
             });
-            loader.load('obj/Palm_Tree.obj');
+            loader.load('objc/Palm_Tree.obj');
 
-            var texture = THREE.ImageUtils.loadTexture("obj/crate.gif");
+            var texture = THREE.ImageUtils.loadTexture("objc/crate.gif");
             texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
             texture.repeat.set(.5, .5);
             var boxGeometry = new THREE.CubeGeometry(30, 650, 30);
