@@ -9,7 +9,7 @@ CrimeRacer.enemyCar = function() {
 
 	this.speed = 0;
 	this.health = 100;
-	this.maxSpeed = 50;
+	this.maxSpeed = 70;
 	this.rotationalAngle = 0.05;
 	this.acceleration = 3;
 	this.backAccelearation = 1500;
@@ -53,6 +53,10 @@ CrimeRacer.enemyCar.prototype.moveForward = function() {
 CrimeRacer.enemyCar.prototype.moveBackword = function() {
 
 	return this.speed -= this.acceleration;
+}
+CrimeRacer.enemyCar.prototype.stopCar = function() {
+
+	return this.speed = 0;
 }
 
 CrimeRacer.enemyCar.prototype.getSpeed = function() {

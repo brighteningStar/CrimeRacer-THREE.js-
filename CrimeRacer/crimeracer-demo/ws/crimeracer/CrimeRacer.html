@@ -1,1645 +1,1915 @@
 <!DOCTYPE html>
 <html lang="en">
-	<head>
-		<title>Crime Racer</title>
-		<meta charset="utf-8">
-		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
-		<canvas id="radar" width="200" height="200"></canvas>
-		<canvas id="speedometer" width="150" height="100"></canvas>
-		<canvas id="health11" width="150" height="20"></canvas>
+    <head>
+        <title>Crime Racer</title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+    <canvas id="radar" width="200" height="200"></canvas>
+    <canvas id="speedometer" width="150" height="100"></canvas>
+    <canvas id="health11" width="150" height="20"></canvas>
+
+    <style>
+        body {
+
+            font-family: Monospace;
+            background-color: #50dee7;
+            margin: 0px auto;
+            overflow: hidden;//
+            background-image: url('images/Bodybackground.jpg');
+            color: black;
+			position: absolute;
+        }
+        #hud {
+            top: 10px;
+            margin-right: 40px;
+            position: absolute;
+            right: 10px;
+            z-index: 100;
+            background-color: #05580C;
+            opacity: .5;
+            border: 1px soild black;
+            color: white;
+            text-shadow: 0 0 30px #c61a1a;
+            font-size: 22px;
+            font-style: "Comic Sans MS", cursive, sans-serif;
+            font-weight: bold;
+            padding-right: 5px;
+            padding-left: 5px;
+        }
+        #intro {
+            background-color: #000000;
+            color: #FFFFFF;
+            cursor: pointer;
+            font-size: 32px;
+            opacity: 0.7;
+            padding: 120px;
+            text-align: center;
+            z-index: 1001;
+        }
+        #hurt {
+            background-color: red;
+            display: none;
+            left: 10;
+            opacity: 0.15;
+            pointer-events: none;
+            position: absolute;
+            top: 0;
+            z-index: 1002;
+        }
+        #radar {
+            background-color: #EEEEEE;
+            border: 1px solid black;
+            bottom: 10px;
+            left: 10px;
+            position: absolute;
+            z-index: 100;
+            opacity: .5;
+        }
+        #speedometer {
+            background-color: #EEEEEE;
+            border: 1px solid black;
+            bottom: 550px;
+            left: 700px;
+            position: absolute;
+            z-index: 100;
+            opacity: .5;
+        }
+        #health11 {
+            background-color: #EEEEEE;
+            border: 1px solid black;
+            bottom: 520px;
+            left: 700px;
+            position: absolute;
+            z-index: 100;
+            opacity: .5;
+        }
+        #myCanvas {
+            background-color: #EEEEEE;
+            border: 1px solid black;
+            bottom: 450px;
+            left: 700px;
+            position: absolute;
+            z-index: 100;
+
+        }
+        #paused{
+            top: 190px;
+            margin-right: 40px;
+            position: absolute;
+            right: 550px;
+            z-index: 100;
+            background-color: #05580C;
+            opacity: .5;
+            border: 1px soild black;
+            color: white;
+            text-shadow: 0 0 30px #c61a1a;
+            font-size: 40px;
+            font-style: "Comic Sans MS", cursive, sans-serif;
+            font-weight: bold;
+            padding-right: 5px;
+            padding-left: 5px;
+
+        }
+        #paused.blinking{
+            color: black;
+        }
+    </style>
+</head>
+
+</div>
+<body>
+
+    <script src="threejs/three/jquery-1.7.2.min.js"></script>
+    <script src="threejs/three/three.min.js"></script>
+    <script src="threejs/three/ImprovedNoise.js"></script>
+    <script src="threejs/three/threex.sparks.js"></script>
+    <script src="threejs/three/Sparks.js"></script>
+    <script src="threejs/three/Tween.js"></script>
+    <script src="threejs/three/ShaderExtras.js"></script>
+    <script src="threejs/three/CollisionUtils.js"></script>
+    <script src="threejs/three/Collisions.js"></script>
+    <script src="threejs/three/Stats.js"></script>
+    <script src="extras/THREEx.KeyboardState.js"></script>
+    <script src="objects/car.js"></script>
+    <script src="objects/wall.js"></script>
+    <script src="loader/MTLLoader.js"></script>
+    <script src="loader/OBJLoader.js"></script>
+    <script src="loader/ColladaLoader.js"></script>
+    <script src="loader/Car.js"></script>
+    <script src="loader/OBJMTLLoader.js"></script>
+    <script src="objects/world.js"></script>
+    <script src="objects/tree.js"></script>
+    <script src="objects/boxes.js"></script>
+
+    <script src="objects/time.js"></script>
+    <script src="objects/enemyCar.js"></script>
+
+    <script id="vertexShader" type="x-shader/x-vertex">
+        uniform sampler2D noiseTexture;
+        uniform float noiseScale;
+
+        uniform sampler2D bumpTexture;
+        uniform float bumpSpeed;
+        uniform float bumpScale;
+
+        uniform float time;
+
+        varying vec2 vUv;
+
+        void main()
+        {
+        vUv = uv;
+
+        vec2 uvTimeShift = vUv + vec2( 1.1, 1.9 ) * time * bumpSpeed;
+        vec4 noise = texture2D( noiseTexture, uvTimeShift );
+        vec2 uvNoiseTimeShift = vUv + noiseScale * vec2( noise.r, noise.g );
+        // below, using uvTimeShift seems to result in more of a "rippling" effect
+        //   while uvNoiseTimeShift seems to result in more of a "shivering" effect
+        vec4 bumpData = texture2D( bumpTexture, uvTimeShift );
+
+        // move the position along the normal
+        //  but displace the vertices at the poles by the same amount
+        float displacement = ( vUv.y > 0.999 || vUv.y < 0.001 ) ?
+        bumpScale * (0.3 + 0.02 * sin(time)) :
+        bumpScale * bumpData.r;
+        vec3 newPosition = position + normal * displacement;
+
+        gl_Position = projectionMatrix * modelViewMatrix * vec4( newPosition, 1.0 );
+        }
+    </script>
+    <script id="fragmentShader" type="x-shader/x-vertex">
+        uniform sampler2D baseTexture;
+        uniform float baseSpeed;
+        uniform float repeatS;
+        uniform float repeatT;
+
+        uniform sampler2D noiseTexture;
+        uniform float noiseScale;
+
+        uniform sampler2D blendTexture;
+        uniform float blendSpeed;
+        uniform float blendOffset;
+
+        uniform float time;
+        uniform float alpha;
+
+        varying vec2 vUv;
+
+        void main()
+        {
+        vec2 uvTimeShift = vUv + vec2( -0.7, 1.5 ) * time * baseSpeed;
+        vec4 noise = texture2D( noiseTexture, uvTimeShift );
+        vec2 uvNoiseTimeShift = vUv + noiseScale * vec2( noise.r, noise.b );
+        vec4 baseColor = texture2D( baseTexture, uvNoiseTimeShift * vec2(repeatS, repeatT) );
+
+        vec2 uvTimeShift2 = vUv + vec2( 1.3, -1.7 ) * time * blendSpeed;
+        vec4 noise2 = texture2D( noiseTexture, uvTimeShift2 );
+        vec2 uvNoiseTimeShift2 = vUv + noiseScale * vec2( noise2.g, noise2.b );
+        vec4 blendColor = texture2D( blendTexture, uvNoiseTimeShift2 * vec2(repeatS, repeatT) ) - blendOffset * vec4(1.0, 1.0, 1.0, 1.0);
+
+        vec4 theColor = baseColor + blendColor;
+        theColor.a = alpha;
+        gl_FragColor = theColor;
+        }
+    </script>
+
+    <script>
+        var container, stats;
+        var camera, scene, renderer;
+        var sphere;
+        var car;
+        var Ncar;
+        var enemyCarr = [];
+        var speed = 0;
+        var Nspeed = 0;
+        var acceleration = 3;
+        var speedDamping = 1;
+        var maxSpeed = 200;
+        var speedGain = 70;
+        var cameraYPos = 250;
+        var mycar;
+        var eneCar;
+        var object;
+        var carHit = false;
+        var box;
+        var textu;
+        var myWorld = new CrimeRacer.World;
+        var distance1 = 0;
+        var collideMesh;
+        var collidableMeshList = [];
+        var collidableMesh = [];
+        var bullets = [];
+        var localObject;
+        var cloc = new THREE.Clock();
+        var index = 0;
+        var enemy;
+        var refrencePoint = [];
+        var point;
+        var hitCount = 0;
+        var checkObj;
+        var wall;
+        var timer = myWorld.worldTime.currentTime.getSeconds();
+        var XPath, YPath, ZPath;
+        var Ccar;
+        var te = 500;
+        var tree;
+        var treesPositionX = [];
+        var treesPositionZ = [];
+        var loader2 = new THREE.ColladaLoader();
+        var bulletOfCar;
+        var wheel;
+        var locatio = 0;
+        var boxArray = [];
+        var carHeight = 0;
+        var box;
+        var countEnemyMove = 0;
+        var runAnim = true;
+        var xWidth = 0;
+        var zWidth = 0;
+        var xPos = 0;
+        var zPos = 0;
+        var carr;
+        var bulletObj;
+        var treeIndex = 0;
+        var wallIndex = 0;
+        var wallPositionX = [];
+        var wallPositionZ = [];
+        var slopeGround;
+        var worldWidth = 256, worldDepth = 256, worldHalfWidth = worldWidth / 2, worldHalfDepth = worldDepth / 2;
+        var ground;
+        var newCar = new THREE.Car();
+        var mines;
+        var minesList = [];
+        var particleSystem;
+        // init();
+        var pos = 150;
+        var particles = [];
+        // var enemy1;
+        // var enemy2;
+        // var enemy3;
+        var enemyModels = [];
+        var cylinder;
+        var particleArray = [];
+        var animatee = true;
+        var leftPoint = [];
+        var rightPoint = [];
+        var checkDirection = [];
+        var check;
+        var Cuniforms;
+        var cameras;
+        var cameraArray = [];
+        var move = 'R';
+		var hitDirection = false;
+		var hitObj;
+		var indexDir = 0;
+			
+
+        // animate();
+
 		
-		<style>
-			body {
+        loader2.load('obj/us/us_police_car.dae', function colladaReady(collada) {
+            localObject = collada.scene;
 
-				font-family: Monospace;
-				background-color: #50dee7;
-				margin: 0px auto;
-				overflow: hidden;//
-				background-image: url('images/Bodybackground.jpg');
-				color: black;
-			}
-			#hud {
-				top: 10px;
-				margin-right: 40px;
-				position: absolute;
-				right: 10px;
-				z-index: 100;
-				background-color: #05580C;
-				opacity: .5;
-				border: 1px soild black;
-				color: white;
-				text-shadow: 0 0 30px #c61a1a;
-				font-size: 22px;
-				font-style: "Comic Sans MS", cursive, sans-serif;
-				font-weight: bold;
-				padding-right: 5px;
-				padding-left: 5px;
-			}
-			#intro {
-				background-color: #000000;
-				color: #FFFFFF;
-				cursor: pointer;
-				font-size: 32px;
-				opacity: 0.7;
-				padding: 120px;
-				text-align: center;
-				z-index: 1001;
-			}
-			#hurt {
-				background-color: red;
-				display: none;
-				left: 0;
-				opacity: 0.15;
-				pointer-events: none;
-				position: absolute;
-				top: 0;
-				z-index: 1002;
-			}
-			#radar {
-				background-color: #EEEEEE;
-				border: 1px solid black;
-				bottom: 10px;
-				left: 10px;
-				position: absolute;
-				z-index: 100;
-				opacity: .5;
-			}
-			#speedometer {
-				background-color: #EEEEEE;
-				border: 1px solid black;
-				bottom: 550px;
-				left: 600px;
-				position: absolute;
-				z-index: 100;
-				opacity: .5;
-			}
-			#health11 {
-				background-color: #EEEEEE;
-				border: 1px solid black;
-				bottom: 520px;
-				left: 600px;
-				position: absolute;
-				z-index: 100;
-				opacity: .5;
-			}
-			#myCanvas {
-				background-color: #EEEEEE;
-				border: 1px solid black;
-				bottom: 450px;
-				left: 800px;
-				position: absolute;
-				z-index: 100;
-				
-			}
-			#paused{
-			top: 190px;
-				margin-right: 40px;
-				position: absolute;
-				right: 550px;
-				z-index: 100;
-				background-color: #05580C;
-				opacity: .5;
-				border: 1px soild black;
-				color: white;
-				text-shadow: 0 0 30px #c61a1a;
-				font-size: 40px;
-				font-style: "Comic Sans MS", cursive, sans-serif;
-				font-weight: bold;
-				padding-right: 5px;
-				padding-left: 5px;
+            localObject.scale.x = localObject.scale.y = localObject.scale.z = 2;
+            localObject.updateMatrix();
+            localObject.position.x = 0;
+            localObject.position.y = 0;
+            localObject.position.z = 0;
+
+            localObject.rotation.x = -(Math.PI / 2);
+
+            localObject.rotation.z = (Math.PI / 2);
+
+            //localObject.rotation.z = -(Math.PI / 2);
+            //collidableMeshList3 = localObject;
+            //console.log(collidableMeshList3);
+            //scene.add(localObject);
 			
-			}
-			#paused.blinking{
-			color: black;
-			}
-		</style>
-	</head>
+            init();
 
-	</div>
-	<body>
-
-		<script src="threejs/three/jquery-1.7.2.min.js"></script>
-		<script src="threejs/three/three.min.js"></script>
-		<script src="threejs/three/ImprovedNoise.js"></script>
-		<script src="threejs/three/threex.sparks.js"></script>
-		<script src="threejs/three/Sparks.js"></script>
-		<script src="threejs/three/Tween.js"></script>
-		<script src="threejs/three/ShaderExtras.js"></script>
-		<script src="threejs/three/CollisionUtils.js"></script>
-		<script src="threejs/three/Collisions.js"></script>
-		<script src="threejs/three/Stats.js"></script>
-		<script src="extras/THREEx.KeyboardState.js"></script>
-		<script src="objects/car.js"></script>
-		<script src="objects/wall.js"></script>
-		<script src="loader/MTLLoader.js"></script>
-		<script src="loader/OBJLoader.js"></script>
-		<script src="loader/ColladaLoader.js"></script>
-		<script src="loader/Car.js"></script>
-		<script src="loader/OBJMTLLoader.js"></script>
-		<script src="objects/world.js"></script>
-		<script src="objects/tree.js"></script>
-		<script src="objects/boxes.js"></script>
-		
-		<script src="objects/time.js"></script>
-		<script src="objects/enemyCar.js"></script>
-
-		<script>
-			var container, stats;
-			var camera, scene, renderer;
-			var sphere;
-			var car;
-			var Ncar;
-			var enemyCarr = [];
-			var speed = 0;
-			var Nspeed = 0;
-			var acceleration = 3;
-			var speedDamping = 1;
-			var maxSpeed = 200;
-			var speedGain = 70;
-			var cameraYPos = 250;
-			var mycar;
-			var eneCar;
-			var object;
-			var carHit = false;
-			var box;
-			var textu;
-			var myWorld = new CrimeRacer.World;
-			var distance1 = 0;
-			var collideMesh;
-			var collidableMeshList = [];
-			var collidableMesh = [];
-			var bullets = [];
-			var localObject;
-			var cloc = new THREE.Clock();
-			var index = 0;
-			var enemy;
-			var refrencePoint = [];
-			var point;
-			var hitCount = 0;
-			var checkObj;
-			var wall;
-			var timer = myWorld.worldTime.currentTime.getSeconds();
-			var XPath, YPath, ZPath;
-			var Ccar;
-			var te = 500;
-			var tree;
-			var treesPositionX = [];
-			var treesPositionZ = [];
-			var loader2 = new THREE.ColladaLoader();
-			var loader3 = new THREE.ColladaLoader();
-			var loader4 = new THREE.ColladaLoader();
-			var loader3 = new THREE.ColladaLoader();
-			var bulletOfCar;
-			var wheel;
-			var locatio = 0;
-			var boxArray = [];
-			var carHeight = 0;
-			var box;
-			var countEnemyMove = 0;
-			var runAnim = true;
-			var xWidth = 0;
-			var zWidth = 0;
-			var xPos = 0;
-			var zPos = 0;
-			var carr;
-			var bulletObj;
-			var treeIndex = 0;
-			var wallIndex = 0;
-			var wallPositionX = [];
-			var wallPositionZ = [];
-			var slopeGround;
-			var worldWidth = 256, worldDepth = 256, worldHalfWidth = worldWidth / 2, worldHalfDepth = worldDepth / 2;
-			var ground;
-			var newCar = new THREE.Car();
-			var mines;
-			var minesList = [];
-			var particleSystem;
-			// init();
-			var pos = 150;
-			var particles = [];
-			var enemy1;
-			var enemy2;
-			var enemy3;
-			var enemyModels = [];
-			var cylinder;
-			var particleArray = [];
-			var animatee = true;
-			var leftPoint = [];
-			var rightPoint = [];
-			
-
-			// animate();
-
-		
-			loader2.load('obj/us/us_police_car.dae', function colladaReady(collada) {
-				localObject = collada.scene;
-
-				localObject.scale.x = localObject.scale.y = localObject.scale.z = 2;
-				localObject.updateMatrix();
-				localObject.position.x = 0;
-				localObject.position.y = 0;
-				localObject.position.z = 0;
-
-				localObject.rotation.x = -(Math.PI / 2);
-
-				localObject.rotation.z = (Math.PI / 2);
-
-				//localObject.rotation.z = -(Math.PI / 2);
-				//collidableMeshList3 = localObject;
-				//console.log(collidableMeshList3);
-				//scene.add(localObject);
-			
-				init();
-
-				animate();
+            animate();
 				
 
-			});
+        });
 			
 			
-			function gameMenu(){
-			animatee = false;
+        function gameMenu(){
+            animatee = false;
 			
 			
-			$('body').append('<div id="paused">PAUSED</div>');
-			var el = $('#paused');
-setInterval(function() {
-   el.toggleClass('blinking');
-}, 3000);
+            $('body').append('<div id="paused">PAUSED</div>');
+            var el = $('#paused');
+            setInterval(function() {
+                el.toggleClass('blinking');
+            }, 3000);
+			
+        }
+        function gameStart(){
+            animatee = true;
+        }
+        function hitTerrain() {
+
+            var vector = ground.position.clone();
+            var rc = new THREE.Ray(localObject.poition, vector.subSelf(localObject.position).normalize);
+            var results = rc.intersectObject(ground);
+            if (results[0])
+                alert('hit at ' + results[0].point);
+        }
+
+        function init() {
+
+            //hitTerrain();
+            container = document.createElement('div');
+            document.body.appendChild(container);
+
+            var info = document.createElement('div');
+
+            container.appendChild(info);
+
+            //camera = new THREE.OrthographicCamera(window.innerWidth / -2, window.innerWidth / 2, window.innerHeight / 2, window.innerHeight / -2, -2000, 1000);
+            camera = new THREE.PerspectiveCamera(100, window.innerWidth / window.innerHeight, 2, 100000);
+
+            camera.position.set(-1000, 0, 0);
 				
-			// var canvas = document.createElement('canvas');
-
-			// canvas.id = "can";
-			// canvas.width = 728;
-			// canvas.height = 256;
-			// // canvas.style.zIndex = 8;
-			// // canvas.style.position = "absolute";
-			// // canvas.style.border = "1px solid";
-			// //canvas.style.background-color = "#EEEEEE";
-				// canvas.style.border = "1px solid black";
-				// canvas.style.bottom = "300px";
-				// canvas.style.left= "350px";
-				// canvas.style.position = "absolute";
-				// //canvas.style.z-index = 100;
+            for(var i = 0; i < myWorld.noOfEnemies(); i++){
 				
-				// // canvas.strokeStyle = "#330000";
-				// // canvas.font = '16px CURSIVE';
-				// // canvas.textBaseline = 'hanging';
-				// // canvas.strokeText('EDIT', 50, 0);
+                cameras = new THREE.PerspectiveCamera(100, window.innerWidth / window.innerHeight, 2, 100000);
 
-
-				// var body = document.getElementsByTagName("body")[0];
-				// body.appendChild(canvas);
-
-			//var ctx = document.getElementById("can");
-			// ctx.strokeStyle = "#330000";
-				// ctx.font = '16px CURSIVE';
-				// ctx.textBaseline = 'hanging';
-				// ctx.strokeText('EDIT', 50, 100);
-			//console.log(can);
-			}
-			function gameStart(){
-			animatee = true;
-			}
-			function hitTerrain() {
-
-				var rc = new THREE.Ray(localObject.poition, localObject.position);
-				var results = rc.intersectObjects(ground);
-				if (results[0])
-					alert('hit at ' + results[0].point);
-			}
-
-			function init() {
-
-				//hitTerrain();
-				container = document.createElement('div');
-				document.body.appendChild(container);
-
-				var info = document.createElement('div');
-
-				container.appendChild(info);
-
-				//camera = new THREE.OrthographicCamera(window.innerWidth / -2, window.innerWidth / 2, window.innerHeight / 2, window.innerHeight / -2, -2000, 1000);
-				camera = new THREE.PerspectiveCamera(100, window.innerWidth / window.innerHeight, 2, 100000);
-
-				camera.position.set(-1000, 0, 0);
-
-				scene = new THREE.Scene();
-				//scene.fog = new THREE.FogExp2(0xD6F1FF, 0.0003);
-				// color, density
-
-				threexSparks = new THREEx.Sparks({
-					maxParticles : 400,
-					counter : new SPARKS.SteadyCounter(300)
-				});
-				//threexSparks.position.x = 1000;
-				// setup the emitter
-				var emitter	= threexSparks.emitter();
-
-				var counter = new SPARKS.SteadyCounter(500);
-				//var emitter = new SPARKS.Emitter(counter);
-
-				var initColorSize = function() {
-					this.initialize = function(emitter, particle) {
-						particle.target.color().setHSV(0.3, 0.9, 0.4);
-						particle.target.size(150);
-					};
-				};
-
-				emitter.addInitializer(new initColorSize());
-				emitter.addInitializer(new SPARKS.Position(new SPARKS.PointZone(new THREE.Vector3(1000, 0, 0))));
-				emitter.addInitializer(new SPARKS.Lifetime(0, 0.8));
-				emitter.addInitializer(new SPARKS.Velocity(new SPARKS.PointZone(new THREE.Vector3(0, 250, 00))));
-
-				emitter.addAction(new SPARKS.Age());
-				emitter.addAction(new SPARKS.Move());
-				emitter.addAction(new SPARKS.RandomDrift(1000, 0, 1000));
-				emitter.addAction(new SPARKS.Accelerate(0, -200, 0));
-				//emitter.position= 30;
+                cameras.position.set(-1000, 0, 0);
 				
-				scene.add(emitter);
+                cameraArray.push(cameras);
+            }
 
-				data = generateHeight(worldWidth, worldDepth);
-				var texture = THREE.ImageUtils.loadTexture("images/road2.jpg");
-				texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
-				texture.repeat.set(100, 100);
+            scene = new THREE.Scene();
+            //scene.fog = new THREE.FogExp2(0xD6F1FF, 0.0003);
+            // color, density
 
-				groundBasic = new THREE.MeshLambertMaterial({
-					color : 0x473e34,
-					map : texture
-				});
-				groundBasic.color.setHSV(0.1, 0.45, 0.995);
+            threexSparks = new THREEx.Sparks({
+                maxParticles : 400,
+                counter : new SPARKS.SteadyCounter(300)
+            });
+            //threexSparks.position.x = 1000;
+            // setup the emitter
+            var emitter	= threexSparks.emitter();
 
-				ground = new THREE.Mesh(new THREE.PlaneGeometry(15000, 15000, worldWidth - 1, worldDepth - 1), groundBasic);
-				console.log(ground.geometry.vertices.length);
+            var counter = new SPARKS.SteadyCounter(500);
+            //var emitter = new SPARKS.Emitter(counter);
 
-				//	ground.position.x = 10000;
-				ground.position.y = 0;
-				ground.rotation.x = (-Math.PI / 2);
-				ground.rotation.z = (-Math.PI / 2);
-				//ground.rotation.y = -Math.PI / 2;
-				ground.receiveShadow = true;
-				ground.dynamic = true;
-				//collidableMesh.push(ground);
-				scene.add(ground);
+            var initColorSize = function() {
+                this.initialize = function(emitter, particle) {
+                    particle.target.color().setHSV(0.3, 0.9, 0.4);
+                    particle.target.size(150);
+                };
+            };
+
+            emitter.addInitializer(new initColorSize());
+            emitter.addInitializer(new SPARKS.Position(new SPARKS.PointZone(new THREE.Vector3(1000, 0, 0))));
+            emitter.addInitializer(new SPARKS.Lifetime(0, 0.8));
+            emitter.addInitializer(new SPARKS.Velocity(new SPARKS.PointZone(new THREE.Vector3(0, 250, 00))));
+
+            emitter.addAction(new SPARKS.Age());
+            emitter.addAction(new SPARKS.Move());
+            emitter.addAction(new SPARKS.RandomDrift(1000, 0, 1000));
+            emitter.addAction(new SPARKS.Accelerate(0, -200, 0));
+            //emitter.position= 30;
+				
+            scene.add(emitter);
+
+            data = generateHeight(worldWidth, worldDepth);
+            var texture = THREE.ImageUtils.loadTexture("images/road2.jpg");
+            texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+            texture.repeat.set(100, 100);
+
+            groundBasic = new THREE.MeshLambertMaterial({
+                color : 0x473e34,
+                map : texture
+            });
+            groundBasic.color.setHSV(0.1, 0.45, 0.995);
+
+            ground = new THREE.Mesh(new THREE.PlaneGeometry(15000, 15000, worldWidth - 1, worldDepth - 1), groundBasic);
+            console.log(ground.geometry.vertices.length);
+
+            //	ground.position.x = 10000;
+            ground.position.y = 0;
+            ground.rotation.x = (-Math.PI / 2);
+            ground.rotation.z = (-Math.PI / 2);
+            //ground.rotation.y = -Math.PI / 2;
+            ground.receiveShadow = true;
+            ground.dynamic = true;
+            //collidableMesh.push(ground);
+            scene.add(ground);
+				
+				
+            //var sphere = new THREE.Mesh( new THREE.SphereGeometry(100,16,12),new THREE.MeshLambertMaterial( { color: 0x2D303D, wireframe: false, shading: THREE.FlatShading } ));
+            // var cylinder = new THREE.Mesh(new THREE.CylinderGeometry(100, 100, 200, 16, 4, false ),new THREE.MeshLambertMaterial( { color: 0x2D303D, wireframe: false, shading: THREE.FlatShading } ));
+            // cylinder.position.x = 1000;
+            // cylinder.position.z = 1000;
+            // //scene.add(sphere);
+            // scene.add(cylinder);
 				
 				
 					
-				//ground.geometry.applyMatrix( new THREE.Matrix4().makeRotationX( - Math.PI / 4 ) );
+            // cylinder.geometry.applyMatrix( new THREE.Matrix4().makeRotationX( - Math.PI / 4 ) );
 
-				// for ( var i = 0, l = ground.geometry.vertices.length; i < l; i ++ ) {
+            // for ( var i = 0, l = cylinder.geometry.vertices.length; i < l; i ++ ) {
 
-				// ground.geometry.vertices[ i ].y = data[ i ] * 2;
+            // cylinder.geometry.vertices[ i ].y = data[ i ] * 1;
 
-				// }
-				var texture = THREE.ImageUtils.loadTexture("images/particle.png");
-				//texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
-				//texture.repeat.set(.5, .5);
+            // }
 				
-				// setup the emitter
-
-				//var verticesArrayX = [];
-
-				// for(var k = 0; k < ground.geometry.vertices.length; k++)
-				// verticesArrayX.push(ground.geometry.vertices[k].y);
-
-				// for(var lk = 0; lk < verticesArrayX.length; lk++)
-				// console.log("verticesArrayX : " + verticesArrayX[lk]);
 				
-				$(document).click(function(e) {
-					e.preventDefault
-					if (e.which === 1) {// Left click only
-						for (var j = enemyCarr.length - 1; j >= 0; j--) {
-						enemy = enemyCarr[j];
-						var dist = distance(enemy.position.x, enemy.position.z, localObject.position.x, localObject.position.z);
-						if (dist < 3000) {
-						object = createBullet();
+            // base image texture for mesh
+            var lavaTexture = new THREE.ImageUtils.loadTexture( 'images/lava.jpg');
+            lavaTexture.wrapS = lavaTexture.wrapT = THREE.RepeatWrapping;
+            // multiplier for distortion speed 
+            var baseSpeed = 0.02;
+            // number of times to repeat texture in each direction
+            var repeatS = repeatT = 4.0;
+
+            // texture used to generate "randomness", distort all other textures
+            var noiseTexture = new THREE.ImageUtils.loadTexture( 'images/cloud10.png' );
+            noiseTexture.wrapS = noiseTexture.wrapT = THREE.RepeatWrapping;
+            // magnitude of noise effect
+            var noiseScale = 0.5;
+
+            // texture to additively blend with base image texture
+            var blendTexture = new THREE.ImageUtils.loadTexture( 'images/lava.jpg' );
+            blendTexture.wrapS = blendTexture.wrapT = THREE.RepeatWrapping;
+            // multiplier for distortion speed
+            var blendSpeed = 0.01;
+            // adjust lightness/darkness of blended texture
+            var blendOffset = 0.25;
+
+            // texture to determine normal displacement
+            var bumpTexture = noiseTexture;
+            bumpTexture.wrapS = bumpTexture.wrapT = THREE.RepeatWrapping;
+            // multiplier for distortion speed 
+            var bumpSpeed   = 0.15;
+            // magnitude of normal displacement
+            var bumpScale   = 40.0;
+
+            // use "this." to create global object
+            this.customUniforms = {
+                baseTexture:  { type: "t", value: lavaTexture },
+                baseSpeed:    { type: "f", value: baseSpeed },
+                repeatS:      { type: "f", value: repeatS },
+                repeatT:      { type: "f", value: repeatT },
+                noiseTexture: { type: "t", value: noiseTexture },
+                noiseScale:   { type: "f", value: noiseScale },
+                blendTexture: { type: "t", value: blendTexture },
+                blendSpeed:   { type: "f", value: blendSpeed },
+                blendOffset:  { type: "f", value: blendOffset },
+                bumpTexture:  { type: "t", value: bumpTexture },
+                bumpSpeed:    { type: "f", value: bumpSpeed },
+                bumpScale:    { type: "f", value: bumpScale },
+                alpha:        { type: "f", value: 1.0 },
+                time:         { type: "f", value: 1.0 }
+            };
+
+            // create custom material from the shader code above
+            //   that is within specially labeled script tags
+            var customMaterial = new THREE.ShaderMaterial(
+            {
+                uniforms: customUniforms,
+                Cuniforms: customUniforms,
+                vertexShader:   document.getElementById( 'vertexShader'   ).textContent,
+                fragmentShader: document.getElementById( 'fragmentShader' ).textContent
+            }   );
+
+            var ballGeometry = new THREE.PlaneGeometry( 100, 100);
+            var ball = new THREE.Mesh( ballGeometry, customMaterial );
+            ball.rotation.x = -Math.PI / 2;
+            scene.add( ball );
+			
+			
+			
+            var texture = THREE.ImageUtils.loadTexture("images/particle.png");
+            //texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+            //texture.repeat.set(.5, .5);
+				
+            // setup the emitter
+
+            //var verticesArrayX = [];
+
+            // for(var k = 0; k < ground.geometry.vertices.length; k++)
+            // verticesArrayX.push(ground.geometry.vertices[k].y);
+
+            // for(var lk = 0; lk < verticesArrayX.length; lk++)
+            // console.log("verticesArrayX : " + verticesArrayX[lk]);
+				
+            $(document).click(function(e) {
+                e.preventDefault
+                if (e.which === 1) {// Left click only
+                    for (var j = enemyCarr.length - 1; j >= 0; j--) {
+                        enemy = enemyCarr[j];
+                        var dist = distance(enemy.position.x, enemy.position.z, localObject.position.x, localObject.position.z);
+                        if (dist < 3000) {
+                            object = createBullet();
 						
-						var snd = new Audio("audios/bulletFire.mp3"); // buffers automatically when created
-						snd.play();
-					}
-						// object = createBullet();
-						// var snd = new Audio("audios/bulletFire.mp3"); // buffers automatically when created
-						// snd.play();
-						}//	createMines(localObject.position.x,30,localObject.position.z);
-					}
+                            var snd = new Audio("audios/bulletFire.mp3"); // buffers automatically when created
+                            snd.play();
+                        }
+                        // object = createBullet();
+                        // var snd = new Audio("audios/bulletFire.mp3"); // buffers automatically when created
+                        // snd.play();
+                    }//	createMines(localObject.position.x,30,localObject.position.z);
+                }
 
-				});
+            });
 				
-				$("body").on("keypress", function (e) {
-    if(!animatee) {
-	animatee = true;
-	animate(runAnim);
-	$('div').remove('#paused');
-	}
-});
-				// if (keyboard.pressed("E")) {
-						// gameStart();
+            $("body").on("keypress", function (e) {
+                if(!animatee) {
+                    animatee = true;
+                    animate(runAnim);
+                    $('div').remove('#paused');
+                }
+            });
+            // if (keyboard.pressed("E")) {
+            // gameStart();
 
-				// }
-				// var sound = new Sound( [ 'sounds/358232_j_s_song.mp3', 'sounds/358232_j_s_song.ogg' ], 275, 1 );;
-				// sound.play();
+            // }
+            // var sound = new Sound( [ 'sounds/358232_j_s_song.mp3', 'sounds/358232_j_s_song.ogg' ], 275, 1 );;
+            // sound.play();
 				
-				//createMines(0, 0, 0);
-				//$('body').append('<canvas id="radar" width="200" height="200"></canvas>');
-				//$('body').append('<div id="hud"><span id="speed">0</span></br>Health: <span id="health">100</span></br>Enemy Car 1: <span id="enemyHealth1">100</span></br>Enemy Car 2: <span id="enemyHealth2">100</span></br>Enemy Car 3: <span id="enemyHealth3">100</span>');
-				// Set up "hurt" flash
-				$('body').append('<div id="hurt"></div>');
-				$('#hurt').css({
-					width : 1366,
-					height : 768
-				});
-				//$('#intro').css({width: 1366, height: 768});
+            //createMines(0, 0, 0);
+            //$('body').append('<canvas id="radar" width="200" height="200"></canvas>');
+            //$('body').append('<div id="hud"><span id="speed">0</span></br>Health: <span id="health">100</span></br>Enemy Car 1: <span id="enemyHealth1">100</span></br>Enemy Car 2: <span id="enemyHealth2">100</span></br>Enemy Car 3: <span id="enemyHealth3">100</span>');
+            // Set up "hurt" flash
+            $('body').append('<div id="hurt"></div>');
+            $('#hurt').css({
+                width : 1600,
+                height : 768
+            });
+            //$('#intro').css({width: 1366, height: 768});
 
-				// Box
+            // Box
 
-				// ========================TREE MAKING============================
-				var texture = THREE.ImageUtils.loadTexture("images/wooden.jpg");
-				texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
-				texture.repeat.set(.5, .5);
-				var boxGeometry = new THREE.CubeGeometry(70, 650, 70);
-				var boxMaterial = new THREE.MeshLambertMaterial({
-					// color : 0x5CD715,
-					shading : THREE.FlatShading,
-					overdraw : true,
-					map : texture
+            // ========================TREE MAKING============================
+            var texture = THREE.ImageUtils.loadTexture("images/wooden.jpg");
+            texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+            texture.repeat.set(.5, .5);
+            var boxGeometry = new THREE.CubeGeometry(70, 650, 70);
+            var boxMaterial = new THREE.MeshLambertMaterial({
+                // color : 0x5CD715,
+                shading : THREE.FlatShading,
+                overdraw : true,
+                map : texture
 
-				});
-				for (var k = 0; k < myWorld.noOfTreeSides(); k++) {
-					for (var l = 0; l <= myWorld.noOfTress(); l++) {
-						// box = new THREE.Mesh(boxGeometry, boxMaterial);
+            });
+            for (var k = 0; k < myWorld.noOfTreeSides(); k++) {
+                for (var l = 0; l <= myWorld.noOfTress(); l++) {
+                    // box = new THREE.Mesh(boxGeometry, boxMaterial);
 
-						myWorld.setWorldTreePosition(k);
+                    myWorld.setWorldTreePosition(k);
 
-						createTrees(myWorld.myTreePosition.position.x, myWorld.myTreePosition.position.y, myWorld.myTreePosition.position.z);
-					}
-				}
+                    createTrees(myWorld.myTreePosition.position.x, myWorld.myTreePosition.position.y, myWorld.myTreePosition.position.z);
+                }
+            }
 
-				scene.add(localObject);
-				createMissiles();
-				makeParticles();
-				// ========================wall=================================
-				var texture = THREE.ImageUtils.loadTexture("images/stone2.jpg");
-				texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
-				texture.repeat.set(1, 1);
-				var boxGeometry = new THREE.CubeGeometry(100, 500, 100);
-				var boxMaterial = new THREE.MeshLambertMaterial({
-					color : 0x8A5719,
-					shading : THREE.FlatShading,
-					overdraw : true,
-					map : texture
+            scene.add(localObject);
+            createMissiles();
+            makeParticles();
+            // ========================wall=================================
+            var texture = THREE.ImageUtils.loadTexture("images/stone2.jpg");
+            texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+            texture.repeat.set(1, 1);
+            var boxGeometry = new THREE.CubeGeometry(100, 500, 100);
+            var boxMaterial = new THREE.MeshLambertMaterial({
+                color : 0x8A5719,
+                shading : THREE.FlatShading,
+                overdraw : true,
+                map : texture
 
-				});
-				for (var k = 1; k <= myWorld.noOfWallSide(); k++) {
+            });
+            for (var k = 1; k <= myWorld.noOfWallSide(); k++) {
 
-					for (var i = 0; i < myWorld.noOfBlockPerBoundryWall(); i++) {
+                for (var i = 0; i < myWorld.noOfBlockPerBoundryWall(); i++) {
 
-						box = new THREE.Mesh(boxGeometry, boxMaterial);
-						scene.add(box);
-						collidableMeshList.push(box);
-						myWorld.setWallPosition(k);
-						box.position.x = myWorld.myWall.position.x;
-						box.position.y = myWorld.myWall.position.y;
-						box.position.z = myWorld.myWall.position.z;
-						// wallPositionX[wallInddex] = myWorld.myWall.position.x;
-						// wallPositionZ[wallIndex] = myWorld.myWall.position.z;
-						wallIndex++;
-						box.castShadow = true;
-						box.receiveShadow = true;
+                    box = new THREE.Mesh(boxGeometry, boxMaterial);
+                    scene.add(box);
+                    collidableMeshList.push(box);
+                    myWorld.setWallPosition(k);
+                    box.position.x = myWorld.myWall.position.x;
+                    box.position.y = myWorld.myWall.position.y;
+                    box.position.z = myWorld.myWall.position.z;
+                    // wallPositionX[wallInddex] = myWorld.myWall.position.x;
+                    // wallPositionZ[wallIndex] = myWorld.myWall.position.z;
+                    wallIndex++;
+                    box.castShadow = true;
+                    box.receiveShadow = true;
 
-					}
-				}
+                }
+            }
 
-				//slope();
+            //slope();
 
-				// var sphere = new THREE.Mesh( new THREE.SphereGeometry(100,16,12),new THREE.MeshLambertMaterial( { color: 0x2D303D, wireframe: false, shading: THREE.FlatShading } ));
-				// var cylinder = new THREE.Mesh(new THREE.CylinderGeometry(100, 100, 200, 16, 4, false ),new THREE.MeshLambertMaterial( { color: 0x2D303D, wireframe: false, shading: THREE.FlatShading } ));
-				// cylinder.position.y = -100;
-				// scene.add(sphere);
-				// scene.add(cylinder);
-				var texture = THREE.ImageUtils.loadTexture("images/car.jpg");
-				texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
-				texture.repeat.set(.5, .5);
+            // var sphere = new THREE.Mesh( new THREE.SphereGeometry(100,16,12),new THREE.MeshLambertMaterial( { color: 0x2D303D, wireframe: false, shading: THREE.FlatShading } ));
+            // var cylinder = new THREE.Mesh(new THREE.CylinderGeometry(100, 100, 200, 16, 4, false ),new THREE.MeshLambertMaterial( { color: 0x2D303D, wireframe: false, shading: THREE.FlatShading } ));
+            // cylinder.position.y = -100;
+            // scene.add(sphere);
+            // scene.add(cylinder);
+            var texture = THREE.ImageUtils.loadTexture("images/car.jpg");
+            texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+            texture.repeat.set(.5, .5);
 
-				var carGeometry = new THREE.CubeGeometry(400, 10, 150);
-				var carMaterial = new THREE.MeshLambertMaterial({
-					color : 0x000000,
-					//shading : THREE.FlatShading,
-					overdraw : true,
-					map : texture
-				});
+            var carGeometry = new THREE.CubeGeometry(400, 10, 150);
+            var carMaterial = new THREE.MeshLambertMaterial({
+                color : 0x000000,
+                //shading : THREE.FlatShading,
+                overdraw : true,
+                map : texture
+            });
 
-				car = new THREE.Mesh(carGeometry, carMaterial);
-				myWorld.setWorldCar();
-				car.position.x = localObject.position.x + 10;
-				car.position.y = localObject.position.y + 10;
-				car.position.z = localObject.position.z;
-				car.castShoadow = true;
-				car.receiveShadow = true;
-				collidableMesh.push(car);
-				car.material.wireframe = true;
-				scene.add(car);
+            car = new THREE.Mesh(carGeometry, carMaterial);
+            myWorld.setWorldCar();
+            car.position.x = localObject.position.x + 10;
+            car.position.y = localObject.position.y + 10;
+            car.position.z = localObject.position.z;
+            car.castShoadow = true;
+            car.receiveShadow = true;
+            collidableMesh.push(car);
+            car.material.wireframe = true;
+            scene.add(car);
 
-				createEnemies();
+            createEnemies();
 				
-				// ============================================BOX MAKING==============================
-				for (var i = 0; i < myWorld.noOfBox(); i++) {
+            // ============================================BOX MAKING==============================
+            for (var i = 0; i < myWorld.noOfBox(); i++) {
 
-					myWorld.setWorldBoxPosition();
-					createBoxes(myWorld.myBoxesPosition.position.x, myWorld.myBoxesPosition.position.y, myWorld.myBoxesPosition.position.z);
+                myWorld.setWorldBoxPosition();
+                createBoxes(myWorld.myBoxesPosition.position.x, myWorld.myBoxesPosition.position.y, myWorld.myBoxesPosition.position.z);
 
-				}
+            }
 
-				//======================================================================================
+            //======================================================================================
 
-				// sceneCube = new THREE.Scene();
-				var r = "textures/cube/skybox/";
-				var urls = [r + "px.jpg", r + "nx.jpg", r + "py.jpg", r + "ny.jpg", r + "pz.jpg", r + "nz.jpg"];
+            // sceneCube = new THREE.Scene();
+            var r = "textures/cube/skybox/";
+            var urls = [r + "px.jpg", r + "nx.jpg", r + "py.jpg", r + "ny.jpg", r + "pz.jpg", r + "nz.jpg"];
 
-				var textureCube = THREE.ImageUtils.loadTextureCube(urls);
-				textureCube.format = THREE.RGBFormat;
+            var textureCube = THREE.ImageUtils.loadTextureCube(urls);
+            textureCube.format = THREE.RGBFormat;
 
-				var shader = THREE.ShaderUtils.lib["cube"];
-				shader.uniforms["tCube"].value = textureCube;
+            var shader = THREE.ShaderUtils.lib["cube"];
+            shader.uniforms["tCube"].value = textureCube;
 
-				var material = new THREE.ShaderMaterial({
+            var material = new THREE.ShaderMaterial({
 
-					fragmentShader : shader.fragmentShader,
-					vertexShader : shader.vertexShader,
-					uniforms : shader.uniforms,
-					depthWrite : false,
-					side : THREE.BackSide
+                fragmentShader : shader.fragmentShader,
+                vertexShader : shader.vertexShader,
+                uniforms : shader.uniforms,
+                depthWrite : false,
+                side : THREE.BackSide
 
-				}), mesh = new THREE.Mesh(new THREE.CubeGeometry(100000, 100000, 100000), material);
-				mesh.rotation.x = -(Math.PI) / 2;
-				mesh.rotation.z = -(Math.PI) / 2;
-				scene.add(mesh);
+            }), mesh = new THREE.Mesh(new THREE.CubeGeometry(100000, 100000, 100000), material);
+            mesh.rotation.x = -(Math.PI) / 2;
+            mesh.rotation.z = -(Math.PI) / 2;
+            scene.add(mesh);
 
-				//====================================================================================
+            //====================================================================================
 
-				// Lights
+            // Lights
 
-				var ambientLight = new THREE.AmbientLight(/*Math.random() * 0x10*/0xffffff);
-				scene.add(ambientLight);
+            var ambientLight = new THREE.AmbientLight(/*Math.random() * 0x10*/0xffffff);
+            scene.add(ambientLight);
 
-				var directionalLight = new THREE.SpotLight(/*Math.random() * 0xffffff*/0x1a4d06);
-				directionalLight.position.x = -2000;
-				directionalLight.position.y = 100;
-				directionalLight.position.z = 6000;
-				//directionalLight.position.normalize();
-				directionalLight.castShadow = true;
-				directionalLight.shadowCameraNear = 1000;
-				directionalLight.shadowCameraFar = camera.far;
-				directionalLight.shadowCameraFov = 200;
-				directionalLight.shadowBias = -0.00125;
-				directionalLight.shadowDarkness = .4;
-				directionalLight.shadowMapWidth = 1024;
-				directionalLight.shadowMapHeight = 1024;
-				//directionalLight.shadowCameraVisible = true;
-				scene.add(directionalLight);
+            var directionalLight = new THREE.SpotLight(/*Math.random() * 0xffffff*/0x1a4d06);
+            directionalLight.position.x = -2000;
+            directionalLight.position.y = 100;
+            directionalLight.position.z = 6000;
+            //directionalLight.position.normalize();
+            directionalLight.castShadow = true;
+            directionalLight.shadowCameraNear = 1000;
+            directionalLight.shadowCameraFar = camera.far;
+            directionalLight.shadowCameraFov = 200;
+            directionalLight.shadowBias = -0.00125;
+            directionalLight.shadowDarkness = .4;
+            directionalLight.shadowMapWidth = 1024;
+            directionalLight.shadowMapHeight = 1024;
+            //directionalLight.shadowCameraVisible = true;
+            scene.add(directionalLight);
 
-				//renderer = new THREE.CanvasRenderer();
-				renderer = new THREE.WebGLRenderer();
+            //renderer = new THREE.CanvasRenderer();
+            renderer = new THREE.WebGLRenderer();
 
-				renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setSize(window.innerWidth, window.innerHeight);
 
-				container.appendChild(renderer.domElement);
+            container.appendChild(renderer.domElement);
 
-				stats = new Stats();
-				stats.domElement.style.position = 'absolute';
-				stats.domElement.style.top = '30px';
-				container.appendChild(stats.domElement);
+            stats = new Stats();
+            stats.domElement.style.position = 'absolute';
+            stats.domElement.style.top = '30px';
+            container.appendChild(stats.domElement);
 
-				//keyboard
-				keyboard = new THREEx.KeyboardState();
+            //keyboard
+            keyboard = new THREEx.KeyboardState();
 
-				window.addEventListener('resize', onWindowResize, false);
+            window.addEventListener('resize', onWindowResize, false);
 
-			}
+        }
 
-			var texture = THREE.ImageUtils.loadTexture("images/peace.png");
-			texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
-			texture.repeat.set(1, 1);
+        var texture = THREE.ImageUtils.loadTexture("images/peace.png");
+        texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+        texture.repeat.set(1, 1);
 
-			var bulletMaterial = new THREE.MeshBasicMaterial({
-				color : 0xFF0000,
-				//map : texture
-			});
-			var bulletGeo = new THREE.CubeGeometry(20, 20, 20);
-			function createBullet(obj, obj2) {
+        var bulletMaterial = new THREE.MeshBasicMaterial({
+            color : 0xFF0000,
+            //map : texture
+        });
+        var bulletGeo = new THREE.CubeGeometry(20, 20, 20);
+        function createBullet(obj, obj2) {
 
-				if (obj === undefined) {
-					obj = localObject;
-					obj2 = enemy;
-				}
+            if (obj === undefined) {
+                obj = localObject;
+                obj2 = enemy;
+            }
 				
-				//cylinder = new THREE.Mesh(new THREE.CylinderGeometry(10, 0, 150, 50, 50, false), new THREE.MeshNormalMaterial());
-				//cylinder.overdraw = true;
-				// cylinder.position.x = 500;
-				// cylinder.position.y = 20;
-				// cylinder.position.z = 500;
-				//cylinder.rotation = enemy.rotation.x + enemy.rotation.z;
+            //cylinder = new THREE.Mesh(new THREE.CylinderGeometry(10, 0, 150, 50, 50, false), new THREE.MeshNormalMaterial());
+            //cylinder.overdraw = true;
+            // cylinder.position.x = 500;
+            // cylinder.position.y = 20;
+            // cylinder.position.z = 500;
+            //cylinder.rotation = enemy.rotation.x + enemy.rotation.z;
 				
-				//scene.add(cylinder);
+            //scene.add(cylinder);
 
-				var bullet = new THREE.Mesh(bulletGeo, bulletMaterial);
-				bullet.position.set(obj.position.x, (obj.position.y + 15) * 0.8, obj.position.z);
-				// var originPoint = bullet.position.clone();
+            var bullet = new THREE.Mesh(bulletGeo, bulletMaterial);
+            bullet.position.set(obj.position.x, (obj.position.y + 15) * 0.8, obj.position.z);
+            // var originPoint = bullet.position.clone();
 
-				if (obj === localObject) {
-					var vector = camera.position.clone();
-					bullet.ray = new THREE.Ray(obj.position, vector.subSelf(obj.position).normalize());
-				} else {
-					var vector = obj2.position.clone();
-					bullet.ray = new THREE.Ray(obj.position, vector.subSelf(obj.position).normalize());
-				}
+            if (obj === localObject) {
+                var vector = camera.position.clone();
+                bullet.ray = new THREE.Ray(obj.position, vector.subSelf(obj.position).normalize());
+            } else {
+                var vector = obj2.position.clone();
+                bullet.ray = new THREE.Ray(obj.position, vector.subSelf(obj.position).normalize());
+            }
 
-				bullet.owner = obj;
+            bullet.owner = obj;
 				
 				
 				
-//cylinder.rotation.z =  0;
-				bullets.push(bullet);
-				scene.add(bullet);
-				//createBulletObj();
-				return bullet;
+            //cylinder.rotation.z =  0;
+            bullets.push(bullet);
+            scene.add(bullet);
+            //createBulletObj();
+            return bullet;
 
-			}
+        }
 
-			function generateHeight(width, height) {
+        function generateHeight(width, height) {
 
-				var size = width * height, data = new Float32Array(size), perlin = new ImprovedNoise(), quality = 1, z = Math.random() * 100;
+            var size = width * height, data = new Float32Array(size), perlin = new ImprovedNoise(), quality = 1, z = Math.random() * 100;
 
-				for (var i = 0; i < size; i++) {
+            for (var i = 0; i < size; i++) {
 
-					data[i] = 0
+                data[i] = 0
 
-				}
+            }
 
-				for (var j = 0; j < 4; j++) {
+            for (var j = 0; j < 4; j++) {
 
-					for (var i = 0; i < size; i++) {
+                for (var i = 0; i < size; i++) {
 
-						var x = i % width, y = ~~(i / width );
-						data[i] += Math.abs(perlin.noise(x / quality, y / quality, z) * quality * 1.75);
+                    var x = i % width, y = ~~(i / width );
+                    data[i] += Math.abs(perlin.noise(x / quality, y / quality, z) * quality * 1.75);
 
-					}
+                }
 
-					quality *= 5;
+                quality *= 5;
 
-				}
+            }
 
-				return data;
+            return data;
 
-			}
+        }
 
-			function onWindowResize() {
+        function onWindowResize() {
 
-				camera.left = window.innerWidth / -2;
-				camera.right = window.innerWidth / 2;
-				camera.top = window.innerHeight / 2;
-				camera.bottom = window.innerHeight / -2;
+            camera.left = window.innerWidth / -2;
+            camera.right = window.innerWidth / 2;
+            camera.top = window.innerHeight / 2;
+            camera.bottom = window.innerHeight / -2;
 
-				camera.updateProjectionMatrix();
+            camera.updateProjectionMatrix();
 
-				renderer.setSize(window.innerWidth, window.innerHeight);
-				renderer.shadowMapEnabled = true;
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.shadowMapEnabled = true;
 
-			}
-
-			function collision(obj, obj2, index) {
-				var originPoint = obj.position.clone();
-				//console.log('point ; ' + originPoint);
-				//clearText();
-
-				for (var vertexIndex = 0; vertexIndex < obj.geometry.vertices.length; vertexIndex++) {
-
-					var localVertex = obj.geometry.vertices[vertexIndex].clone();
-					var globalVertex = obj.matrix.multiplyVector3(localVertex);
-
-					var directionVector = globalVertex.subSelf(obj.position);
-
-					var ray = new THREE.Ray(originPoint, directionVector.clone().normalize());
-
-					var collisionResults = ray.intersectObjects(obj2);
-
-					if (collisionResults.length > 0 && collisionResults[0].distance < directionVector.length()) {
-						//if (collisionResults[0])
-						//alert('hit at ' + collisionResults[0].point);
-						//alert('hit at ' + collisionResults[0].point.x);
-						if (obj === car) {
-							//speed = -10;
-							var col = new THREE.Clock();
-
-							speed = myWorld.CarMove("W", true);
-							return true;
-							localObject.position.y = 20;
-							localObject.rotation.y = Math.PI;
-							localObject.position.y = 50;
-							//scene.remove(car);
-							// $('#health').html(myWorld.healthControl());
-							// if (myWorld.healthControl() <= 0)
-							// $('#health').html("Finished");
-						} else if (obj != car) {
-
-							Nspeed = myWorld.setEnemyCarSpeed(timer, true, index);
-						}
-					}
-
-				}
-			}
-
-			function updateTime() {
-
-				myWorld.updateWorldTime();
-				timer = myWorld.worldTime.currentTime.getSeconds();
-
-				// $('#time').html(timer + "s");
-
-			}
-
-			function speedDraw() {
-
-				var Canvas = document.getElementById('speedometer');
-				var ctx = Canvas.getContext('2d');
-
-				//speed = myWorld.CarMove("W", false);
-				
-		
-
-				//ctx.clearRect(0, 0, 578, 200);
-						var imageObj = new Image();
-
-      imageObj.onload = function() {
-        ctx.drawImage(imageObj, 0, 0);
-      };
-      imageObj.src = 'images/speedometer.jpg';
-				
-
-				var speed2 = speed + 3;
-				if (speed2 < 0)
-					speed2 = 0;
-
-				// ctx.beginPath();
-				// ctx.arc(70, 100, 75, 0, Math.PI, true);
-				// ctx.closePath();
-				// ctx.lineWidth = 5;
-				// ctx.fillStyle = 'red';
-				// ctx.fill();
-				// ctx.strokeStyle = '#550000';
-				// ctx.stroke();
-
-				ctx.beginPath();
-				ctx.moveTo(70, 100);
-				ctx.lineTo(speed, -(speed - speedGain - 25));
-				//console.log("speed in speedometer: " + speed);
-				ctx.stroke();
-				
-
-			}
+        }
 			
-			function healthDraw(health11){
-				var Canvas = document.getElementById('health11');
-				var ctx = Canvas.getContext('2d');
+        var checkMaterial = new THREE.MeshBasicMaterial({
+            color : 0xFF00FF,
+            //map : texture
+        });
+        var checkGeo = new THREE.CubeGeometry(2, 2, 2);
+        function getDirection(obj, obj2){
+				
+            if (obj === undefined) {
+                obj = localObject;
+                obj2 = enemy;
+            }
+				
+				
+
+            var bullet = new THREE.Mesh(checkGeo, checkMaterial);
+            bullet.position.set(obj.position.x, (obj.position.y + 15) * 0.8, obj.position.z);
+            // var originPoint = bullet.position.clone();
+
+            if (obj === localObject) {
+                var vector = camera.position.clone();
+                bullet.ray = new THREE.Ray(obj.position, vector.subSelf(obj.position).normalize());
+            } else {
+                var vector = obj2.position.clone();
+                bullet.ray = new THREE.Ray(obj.position, vector.subSelf(obj.position).normalize());
+            }
+
+            bullet.owner = obj;
 				
 				
 				
-				ctx.clearRect(0, 0, 150, 20);
-				ctx.save();
-				if(health11 > 30)
-					ctx.fillStyle="green";
-				else
-					ctx.fillStyle="red";
-				
-				ctx.fillRect(0,0,health11,100);
-				
-				// ctx.fill();
+            //cylinder.rotation.z =  0;
+            checkDirection.push(bullet);
+            scene.add(bullet);
+            //createBulletObj();
+            return bullet;
 				
 				
-				ctx.strokeStyle = "#330000";
-				ctx.font = '16px CURSIVE';
-				ctx.textBaseline = 'hanging';
-				ctx.strokeText('HEALTH', 50, 0);
-				ctx.restore();
-				}
-			
 				
-		
-		
-			
+        }
 
-			function mapDraw() {
-				var Canvas = document.getElementById('radar');
-				var ctx = Canvas.getContext('2d');
+        function collision(obj, obj2, index) {
+            var originPoint = obj.position.clone();
+            //console.log('point ; ' + originPoint);
+            //clearText();
 
-				ctx.clearRect(0, 0, 200, 200);
-				var xPos = localObject.position.x;
-				var yPos = localObject.position.z;
+            for (var vertexIndex = 0; vertexIndex < obj.geometry.vertices.length; vertexIndex++) {
 
-				var xCor = 20000;
-				var yCor = 20000;
+                var localVertex = obj.geometry.vertices[vertexIndex].clone();
+                var globalVertex = obj.matrix.multiplyVector3(localVertex);
 
-				ctx.fillStyle = '#0000FF';
-				ctx.fillRect(((yPos * 180) / 20000) + 90, (-(xPos * 180) / 20000) + 90, 10, 10);
+                var directionVector = globalVertex.subSelf(obj.position);
 
-				ctx.stroke();
+                var ray = new THREE.Ray(originPoint, directionVector.clone().normalize());
 
-				for (var i = 0; i < myWorld.noOfEnemies(); i++) {
+                var collisionResults = ray.intersectObjects(obj2);
 
-					var xPosEnemy = enemyCarr[i].position.x;
-					var yPosEnemy = enemyCarr[i].position.z;
+                if (collisionResults.length > 0 && collisionResults[0].distance < directionVector.length()) {
+                    //if (collisionResults[0])
+                    //alert('hit at ' + collisionResults[0].point);
+                    //alert('hit at ' + collisionResults[0].point.x);
+                    if (obj === car) {
+                        //speed = -10;
+                        var col = new THREE.Clock();
 
-					ctx.fillStyle = '#FF00FF';
-					ctx.fillRect(((yPosEnemy * 180) / 20000) + 90, (-(xPosEnemy * 180) / 20000) + 90, 10, 10);
+                        speed = myWorld.CarMove("W", true);
+                        return true;
+                        localObject.position.y = 20;
+                        localObject.rotation.y = Math.PI;
+                        localObject.position.y = 50;
+                        //scene.remove(car);
+                        // $('#health').html(myWorld.healthControl());
+                        // if (myWorld.healthControl() <= 0)
+                        // $('#health').html("Finished");
+                    } else if (obj != car) {
 
-					ctx.stroke();
-				}
-
-				for (var k = 0; k < treesPositionX.length; k++) {
-
-					var xPosTree = treesPositionX[k];
-					var yPosTree = treesPositionZ[k];
-
-					ctx.fillStyle = '#00FFFF';
-					ctx.fillRect(((yPosTree * 180) / 20000) + 90, (-(xPosTree * 180) / 20000) + 90, 10, 10);
-
-					ctx.stroke();
-				}
-
-				// for (var k = 0; k < wallPositionX.length; k++){
-
-				// var xPosWall = wallPositionX[k];
-				// var yPosWall = wallPositionZ[k];
-
-				// ctx.fillStyle = '#FFFFFF';
-				// ctx.fillRect(((yPosWall * 180) / 20000) + 90, (-(xPosWall * 180) / 20000) + 90, 10, 10);
-
-				// ctx.stroke();
-				// }
-
-			}
-			
-			function makeParticles() { 
-				
-				var particle, material; 
-
-				// we're gonna move from z position -1000 (far away) 
-				// to 1000 (where the camera is) and add a random particle at every pos. 
-				for ( var zpos= -1000; zpos < 1000; zpos+=20 ) {
-		
-					// we make a particle material and pass through the 
-					// colour and custom particle render function we defined. 
-					material = new THREE.ParticleCanvasMaterial( { color: 0xff0000} );
-					// make the particle
-					particle = new THREE.Particle(material);
-		
-					// give it a random x and y position between -500 and 500
-					particle.position.z = 1000;
-					particle.position.x = 1000;
-		
-					// set its z position
-					particle.position.y = 1000;
-		
-					// scale it up a bit
-					particle.scale.x = particle.scale.y = 10;
-		
-					// add it to the scene
-					scene.add( particle );
-		
-					// and to the array of particles. 
-					particles.push(particle); 
-				}
-				
-			}
-
-			function animate(runAnim) {
-
-			
-				
-				//makingParticleSystem();
-				
-				// var parti = particleSystem;
-				// scene.add(parti);
-				// //scene.remove(parti);
-
-				// particleSystem.rotation.x = Math.random() * Math.PI * .8;
-				// particleSystem.rotation.z = Math.random() * Math.PI * .8;
-				// particleSystem.rotation.y	= Math.random() * Math.PI * .8;
-				if(animatee)
-				requestAnimationFrame(animate);
-
-				collision(car, collidableMeshList)
-
-				collision(car, enemyCarr);
-				// collision(enemyCarr, enemyCarr);
-				collision(car, minesList);
-				collision(car, boxArray);
-				//createMines(0,0,0);
-				updateTime();
-				//renderer.clear();
-				render();
-				stats.update();
-
-				// scene.remove( localObject );
-				// localObject.traverse( function ( localObject ) {
-				// renderer.deallocateObject( localObject );
-				// localObject.geometry.deallocate();
-				// localObject.material.deallocate();
-				// localObject.deallocate();
-				// } );
-
-			}
-
-			function createMines(xPos, yPos, zPos) {
-
-				var boxGeometry = new THREE.CubeGeometry(20, 20, 20);
-				var boxMaterial = new THREE.MeshLambertMaterial({
-					color : 0x000000,
-					//shading : THREE.FlatShading,
-					overdraw : true,
-					//map : texture
-				});
-
-				box = new THREE.Mesh(boxGeometry, boxMaterial);
-				//myWorld.setWorldCar();
-
-				var loader = new THREE.ColladaLoader();
-				loader.load('obj/missile.dae', function colladaReady(collada) {
-					mines = collada.scene;
-
-					mines.scale.x = mines.scale.y = mines.scale.z = .5;
-					mines.updateMatrix();
-					mines.position.x = xPos - 50;
-					mines.position.y = yPos;
-					mines.position.z = zPos;
-
-					mines.rotation.x = -(Math.PI / 2);
-					mines.rotation.y = (localObject.rotation.x + localObject.rotation.z);
-					mines.rotation.z = -(Math.PI / 2);
-
-					//localObject.rotation.z = -(Math.PI / 2);
-					//collidableMeshList3 = localObject;
-					//console.log(collidableMeshList3);
-					scene.add(mines);
-					box.position.x = mines.position.x - 10;
-					box.position.y = mines.position.y;
-					box.position.z = mines.position.z;
-					box.castShoadow = true;
-					box.receiveShadow = true;
-					//collidableMeshList.push(box);
-					box.material.wireframe = true;
-					minesList.push(box);
-					scene.add(box);
-
-				});
-
-			}
-			
-			function createEnemies(){
-			
-			
-			var carGeometry = new THREE.CubeGeometry(400, 20, 150);
-				var carMaterial = new THREE.MeshLambertMaterial({
-					color : 0x000000,
-					//shading : THREE.FlatShading,
-					overdraw : true,
-					map : texture
-				});
-				for (var k = 1; k <= myWorld.noOfEnemies(); k++) {
-
-					Ncar = new THREE.Mesh(carGeometry, carMaterial);
-					myWorld.setWorldEnemyCar(k);
-					Ncar.position.x = myWorld.enemyCar.position.x + 10;
-					Ncar.position.y = myWorld.enemyCar.position.y + 10;
-					Ncar.position.z = myWorld.enemyCar.position.z;
+                        Nspeed = myWorld.setEnemyCarSpeed(timer, true, index);
+                    }
 					
-					Ncar.castShoadow = true;
-					Ncar.receiveShadow = true;
-					Ncar.material.wireframe = true;
-					Ncar.lastShot = Date.now();
-					scene.add(Ncar);
-					enemyCarr.push(Ncar);
+                }
+
+            }
+        }
+		
+		function continouseCollision(obj, obj2) {
+            var originPoint = obj.position.clone();
+            //console.log('point ; ' + originPoint);
+            //clearText();
+
+            for (var vertexIndex = 0; vertexIndex < obj.geometry.vertices.length; vertexIndex++) {
+
+                var localVertex = obj.geometry.vertices[vertexIndex].clone();
+                var globalVertex = obj.matrix.multiplyVector3(localVertex);
+
+                var directionVector = globalVertex.subSelf(obj.position);
+
+                var ray = new THREE.Ray(originPoint, directionVector.clone().normalize());
+
+                var collisionResults = ray.intersectObjects(obj2);
+
+                if (collisionResults.length > 0 && collisionResults[0].distance < directionVector.length()) {
+                    return collisionResults[0].Object;
 					
-					var texture11 = new THREE.Texture();
+                }
 
-				var loader = new THREE.ImageLoader();
-				loader.addEventListener('load', function(event) {
+            }
+        }
 
-					texture11.image = event.content;
-					texture11.needsUpdate = true;
+        function updateTime() {
 
-				});
-				loader.load('images/carss.jpg');
-				var loader = new THREE.OBJMTLLoader();
-				loader.addEventListener('load', function(event) {
+            myWorld.updateWorldTime();
+            timer = myWorld.worldTime.currentTime.getSeconds();
 
-					object = event.content;
+            // $('#time').html(timer + "s");
 
-					for (var i = 0, l = object.children.length; i < l; i++) {
+        }
 
-						object.children[i].material.map = texture11;
+        function speedDraw() {
 
-					}
-					object.scale.x = object.scale.y = object.scale.z = 90;
-					object.position.x = myWorld.enemyCar.position.x;
-					object.position.y = 50;
-					object.position.z = myWorld.enemyCar.position.z;
-					object.rotation.x = -(Math.PI) / 2;
-					object.rotation.z = (Math.PI) / 2;
-					enemyModels.push(object);
-					scene.add(object);
+            var Canvas = document.getElementById('speedometer');
+            var ctx = Canvas.getContext('2d');
 
-				});
-				loader.load('obj/LP670/lp670.obj', 'obj/car/lp670.mtl');
+            //speed = myWorld.CarMove("W", false);
 				
-				var pointGeo = new THREE.CubeGeometry(50, 100, 50);
-				var pointMaterial = new THREE.MeshLambertMaterial({
-					color : 0x003300,
-					//shading : THREE.FlatShading,
-					overdraw : true,
-					//map : texture
-				});
+		
+
+            //ctx.clearRect(0, 0, 578, 200);
+            var imageObj = new Image();
+
+            imageObj.onload = function() {
+                ctx.drawImage(imageObj, 0, 0);
+            };
+            imageObj.src = 'images/speedometer.jpg';
 				
-				var pointLeft = new THREE.Mesh(pointGeo, pointMaterial);
-				var pointRight = new THREE.Mesh(pointGeo, pointMaterial);
-					scene.add(pointLeft);
-					scene.add(pointRight);
-					leftPoint.push(pointLeft);
-					rightPoint.push(pointRight);
-					
-				}
-			}
+
+            var speed2 = speed + 3;
+            if (speed2 < 0)
+                speed2 = 0;
+
+            // ctx.beginPath();
+            // ctx.arc(70, 100, 75, 0, Math.PI, true);
+            // ctx.closePath();
+            // ctx.lineWidth = 5;
+            // ctx.fillStyle = 'red';
+            // ctx.fill();
+            // ctx.strokeStyle = '#550000';
+            // ctx.stroke();
+
+            ctx.beginPath();
+            ctx.moveTo(70, 100);
+            ctx.lineTo(speed, -(speed - speedGain - 25));
+            //console.log("speed in speedometer: " + speed);
+            ctx.stroke();
+				
+
+        }
 			
-			function createMissiles(){
-			var texture = new THREE.Texture();
+        function healthDraw(health11){
+            var Canvas = document.getElementById('health11');
+            var ctx = Canvas.getContext('2d');
+				
+				
+				
+            ctx.clearRect(0, 0, 150, 20);
+            ctx.save();
+            if(health11 > 30)
+                ctx.fillStyle="green";
+            else
+                ctx.fillStyle="red";
+				
+            ctx.fillRect(0,0,health11,100);
+				
+            // ctx.fill();
+				
+				
+            ctx.strokeStyle = "#330000";
+            ctx.font = '16px CURSIVE';
+            ctx.textBaseline = 'hanging';
+            ctx.strokeText('HEALTH', 50, 0);
+            ctx.restore();
+        }
+			
+				
+		
+		
+			
 
-				var loader = new THREE.ImageLoader();
-				loader.addEventListener('load', function(event) {
+        function mapDraw() {
+            var Canvas = document.getElementById('radar');
+            var ctx = Canvas.getContext('2d');
 
-					texture.image = event.content;
-					texture.needsUpdate = true;
+            ctx.clearRect(0, 0, 200, 200);
+            var xPos = localObject.position.x;
+            var yPos = localObject.position.z;
 
-				});
-				loader.load('images/rgb.jpg');
-				var loader = new THREE.OBJLoader();
-				loader.addEventListener('load', function(event) {
+            var xCor = 20000;
+            var yCor = 20000;
 
-					var object = event.content;
+            ctx.fillStyle = '#0000FF';
+            ctx.fillRect(((yPos * 180) / 20000) + 90, (-(xPos * 180) / 20000) + 90, 10, 10);
 
-					// for (var i = 0, l = object.children.length; i < l; i++) {
+            ctx.stroke();
 
-						// object.children[i].material.map = texture;
+            for (var i = 0; i < myWorld.noOfEnemies(); i++) {
 
-					// }
-					object.scale.x = object.scale.y = object.scale.z = 20;
-					object.position.x = 500;
-					object.position.y = 10;
-					object.position.z = 1000;
-					object.rotation.x = - Math.PI / 2;
-					object.rotation.z = - Math.PI / 4;
+                var xPosEnemy = enemyCarr[i].position.x;
+                var yPosEnemy = enemyCarr[i].position.z;
+
+                ctx.fillStyle = '#FF00FF';
+                ctx.fillRect(((yPosEnemy * 180) / 20000) + 90, (-(xPosEnemy * 180) / 20000) + 90, 10, 10);
+
+                ctx.stroke();
+            }
+
+            for (var k = 0; k < treesPositionX.length; k++) {
+
+                var xPosTree = treesPositionX[k];
+                var yPosTree = treesPositionZ[k];
+
+                ctx.fillStyle = '#00FFFF';
+                ctx.fillRect(((yPosTree * 180) / 20000) + 90, (-(xPosTree * 180) / 20000) + 90, 10, 10);
+
+                ctx.stroke();
+            }
+
+            // for (var k = 0; k < wallPositionX.length; k++){
+
+            // var xPosWall = wallPositionX[k];
+            // var yPosWall = wallPositionZ[k];
+
+            // ctx.fillStyle = '#FFFFFF';
+            // ctx.fillRect(((yPosWall * 180) / 20000) + 90, (-(xPosWall * 180) / 20000) + 90, 10, 10);
+
+            // ctx.stroke();
+            // }
+
+        }
+			
+        function makeParticles() { 
+				
+            var particle, material; 
+
+            // we're gonna move from z position -1000 (far away) 
+            // to 1000 (where the camera is) and add a random particle at every pos. 
+            for ( var zpos= -1000; zpos < 1000; zpos+=20 ) {
+		
+                // we make a particle material and pass through the 
+                // colour and custom particle render function we defined. 
+                material = new THREE.ParticleCanvasMaterial( { color: 0xff0000} );
+                // make the particle
+                particle = new THREE.Particle(material);
+		
+                // give it a random x and y position between -500 and 500
+                particle.position.z = 1000;
+                particle.position.x = 1000;
+		
+                // set its z position
+                particle.position.y = 1000;
+		
+                // scale it up a bit
+                particle.scale.x = particle.scale.y = 10;
+		
+                // add it to the scene
+                scene.add( particle );
+		
+                // and to the array of particles. 
+                particles.push(particle); 
+            }
+				
+        }
+
+        function animate(runAnim) {
+
+			
+				
+            //makingParticleSystem();
+				
+            // var parti = particleSystem;
+            // scene.add(parti);
+            // //scene.remove(parti);
+
+            // particleSystem.rotation.x = Math.random() * Math.PI * .8;
+            // particleSystem.rotation.z = Math.random() * Math.PI * .8;
+            // particleSystem.rotation.y	= Math.random() * Math.PI * .8;
+            if(animatee)
+                requestAnimationFrame(animate);
+
+            collision(car, collidableMeshList)
+
+            collision(car, enemyCarr);
+            // collision(enemyCarr, enemyCarr);
+            collision(car, minesList);
+            collision(car, boxArray);
+            //createMines(0,0,0);
+            updateTime();
+			for(var k = 0; k < myWorld.noOfEnemies(); k++){
+				collision(enemyCarr[k], enemyCarr);
+				if(k >= myWorld.noOfEnemies())
+					k = 0;
+			}
+            //renderer.clear();
+            render();
+            stats.update();
+
+            // scene.remove( localObject );
+            // localObject.traverse( function ( localObject ) {
+            // renderer.deallocateObject( localObject );
+            // localObject.geometry.deallocate();
+            // localObject.material.deallocate();
+            // localObject.deallocate();
+            // } );
+
+        }
+
+        function createMines(xPos, yPos, zPos) {
+
+            var boxGeometry = new THREE.CubeGeometry(20, 20, 20);
+            var boxMaterial = new THREE.MeshLambertMaterial({
+                color : 0x000000,
+                //shading : THREE.FlatShading,
+                overdraw : true,
+                //map : texture
+            });
+
+            box = new THREE.Mesh(boxGeometry, boxMaterial);
+            //myWorld.setWorldCar();
+
+            var loader = new THREE.ColladaLoader();
+            loader.load('obj/mine.dae', function colladaReady(collada) {
+                mines = collada.scene;
+
+                mines.scale.x = mines.scale.y = mines.scale.z = .5;
+                mines.updateMatrix();
+                mines.position.x = xPos - 50;
+                mines.position.y = yPos;
+                mines.position.z = zPos;
+
+                mines.rotation.x = -(Math.PI / 2);
+                mines.rotation.y = (localObject.rotation.x + localObject.rotation.z);
+                mines.rotation.z = -(Math.PI / 2);
+
+                //localObject.rotation.z = -(Math.PI / 2);
+                //collidableMeshList3 = localObject;
+                //console.log(collidableMeshList3);
+                scene.add(mines);
+                box.position.x = mines.position.x - 10;
+                box.position.y = mines.position.y;
+                box.position.z = mines.position.z;
+                box.castShoadow = true;
+                box.receiveShadow = true;
+                //collidableMeshList.push(box);
+                box.material.wireframe = true;
+                minesList.push(box);
+                scene.add(box);
+
+            });
+
+        }
+			
+        function createEnemies(){
+			
+			
+            var carGeometry = new THREE.CubeGeometry(400, 20, 150);
+            var carMaterial = new THREE.MeshLambertMaterial({
+                color : 0x000000,
+                //shading : THREE.FlatShading,
+                overdraw : true,
+                map : texture
+            });
+            for (var k = 1; k <= myWorld.noOfEnemies(); k++) {
+
+                Ncar = new THREE.Mesh(carGeometry, carMaterial);
+                myWorld.setWorldEnemyCar(k);
+                Ncar.position.x = myWorld.enemyCar.position.x + 10;
+                Ncar.position.y = myWorld.enemyCar.position.y + 10;
+                Ncar.position.z = myWorld.enemyCar.position.z;
 					
-					scene.add(object);
+                Ncar.castShoadow = true;
+                Ncar.receiveShadow = true;
+                Ncar.material.wireframe = true;
+                Ncar.lastShot = Date.now();
+                scene.add(Ncar);
+                enemyCarr.push(Ncar);
+					
+                var texture11 = new THREE.Texture();
 
-				});
-				loader.load('obj/missiles.obj');
-			}
-			function createBoxes(xPos, yPos, zPos) {
-				var texture = new THREE.Texture();
+                var loader = new THREE.ImageLoader();
+                loader.addEventListener('load', function(event) {
 
-				var loader = new THREE.ImageLoader();
-				loader.addEventListener('load', function(event) {
+                    texture11.image = event.content;
+                    texture11.needsUpdate = true;
 
-					texture.image = event.content;
-					texture.needsUpdate = true;
+                });
+                loader.load('images/carss.jpg');
+                var loader = new THREE.OBJMTLLoader();
+                loader.addEventListener('load', function(event) {
 
-				});
-				loader.load('obj/crate.gif');
+                    object = event.content;
 
-				// model
+                    for (var i = 0, l = object.children.length; i < l; i++) {
 
-				var loader = new THREE.OBJLoader();
-				loader.addEventListener('load', function(event) {
+                        object.children[i].material.map = texture11;
 
-					var object = event.content;
+                    }
+                    object.scale.x = object.scale.y = object.scale.z = 90;
+                    object.position.x = myWorld.enemyCar.position.x;
+                    object.position.y = 50;
+                    object.position.z = myWorld.enemyCar.position.z;
+                    object.rotation.x = -(Math.PI) / 2;
+                    object.rotation.z = (Math.PI) / 2;
+                    enemyModels.push(object);
+                    scene.add(object);
 
-					for (var i = 0, l = object.children.length; i < l; i++) {
+                });
+                loader.load('obj/LP670/lp670.obj', 'obj/car/lp670.mtl');
+				
+                var pointGeo = new THREE.CubeGeometry(50, 100, 50);
+                var pointMaterial = new THREE.MeshLambertMaterial({
+                    color : 0x003300,
+                    //shading : THREE.FlatShading,
+                    overdraw : true,
+                    //map : texture
+                });
+				
+                var pointLeft = new THREE.Mesh(pointGeo, pointMaterial);
+                var pointRight = new THREE.Mesh(pointGeo, pointMaterial);
+                scene.add(pointLeft);
+                // scene.add(pointRight);
+                leftPoint.push(pointLeft);
+                //rightPoint.push(pointRight);
+					
+            }
+        }
+			
+        function createMissiles(){
+            var texture = new THREE.Texture();
 
-						object.children[i].material.map = texture;
+            var loader = new THREE.ImageLoader();
+            loader.addEventListener('load', function(event) {
 
-					}
-					object.scale.x = object.scale.y = object.scale.z = 200;
-					object.position.x = xPos;
-					object.position.y = yPos;
-					object.position.z = zPos;
-					 //object.rotation.x = - (Math.PI) / 2;
-					//objects.push(object);
-					scene.add(object);
+                texture.image = event.content;
+                texture.needsUpdate = true;
 
-				});
-				loader.load('obj/Crate Box/crate.obj');
+            });
+            loader.load('images/rgb.jpg');
+            var loader = new THREE.OBJLoader();
+            loader.addEventListener('load', function(event) {
 
-				var boxGeometry = new THREE.CubeGeometry(190, 190, 190);
-				var boxMaterial = new THREE.MeshLambertMaterial({
-					color : 0x000000,
-					//shading : THREE.FlatShading,
-					overdraw : true,
-					//map : texture
-				});
+                var object = event.content;
 
-				box = new THREE.Mesh(boxGeometry, boxMaterial);
-				//myWorld.setWorldCar();
-				box.position.x = xPos;
-				box.position.y = yPos;
-				box.position.z = zPos - 120;
-				box.castShoadow = true;
-				box.receiveShadow = true;
-				collidableMeshList.push(box);
-				box.material.wireframe = true;
-				scene.add(box);
-			}
+                // for (var i = 0, l = object.children.length; i < l; i++) {
 
-			function createBulletObj() {
-				loader2.load('obj/bullet.dae', function colladaReady(collada) {
-					bulletObj = collada.scene;
+                // object.children[i].material.map = texture;
 
-					bulletObj.scale.x = bulletObj.scale.y = bulletObj.scale.z = 30;
-					bulletObj.updateMatrix();
-					bulletObj.position.x = 0;
-					bulletObj.position.y = 0;
-					bulletObj.position.z = 0;
+                // }
+                object.scale.x = object.scale.y = object.scale.z = 20;
+                object.position.x = 500;
+                object.position.y = 10;
+                object.position.z = 1000;
+                object.rotation.x = - Math.PI / 2;
+                object.rotation.z = - Math.PI / 4;
+					
+                scene.add(object);
 
-					//bulletObj.rotation.x = -(Math.PI / 2);
+            });
+            loader.load('obj/missiles.obj');
+        }
+        function createBoxes(xPos, yPos, zPos) {
+            var texture = new THREE.Texture();
 
-					bulletObj.rotation.y = (Math.PI / 2);
+            var loader = new THREE.ImageLoader();
+            loader.addEventListener('load', function(event) {
 
-					//localObject.rotation.z = -(Math.PI / 2);
-					//collidableMeshList3 = localObject;
-					//console.log(collidableMeshList3);
-					scene.add(bulletObj);
+                texture.image = event.content;
+                texture.needsUpdate = true;
 
-				});
-			}
+            });
+            loader.load('obj/crate.gif');
 
-			function createBulletObjPosition(xPos, yPos, zPos) {
-				bulletObj.position.x = xPos;
-				bulletObj.position.y = yPos;
-				bulletObj.position.z = zPos;
-			}
+            // model
 
-			function createTrees(xPos, yPos, zPos) {
-				//mapDrawTree(zPos, xPos);
-				treesPositionX[treeIndex] = xPos;
-				treesPositionZ[treeIndex] = zPos;
-				treeIndex++;
-				var texture1 = new THREE.Texture();
+            var loader = new THREE.OBJLoader();
+            loader.addEventListener('load', function(event) {
 
-				var loader = new THREE.ImageLoader();
-				loader.addEventListener('load', function(event) {
+                var object = event.content;
 
-					texture1.image = event.content;
-					texture1.needsUpdate = true;
+                for (var i = 0, l = object.children.length; i < l; i++) {
 
-				});
-				loader.load('obj/normal_L1010014.jpg');
+                    object.children[i].material.map = texture;
 
-				// model
+                }
+                object.scale.x = object.scale.y = object.scale.z = 200;
+                object.position.x = xPos;
+                object.position.y = yPos;
+                object.position.z = zPos;
+                //object.rotation.x = - (Math.PI) / 2;
+                //objects.push(object);
+                scene.add(object);
 
-				var loader = new THREE.OBJLoader();
-				loader.addEventListener('load', function(event) {
+            });
+            loader.load('obj/Crate Box/crate.obj');
 
-					var object = event.content;
+            var boxGeometry = new THREE.CubeGeometry(190, 190, 190);
+            var boxMaterial = new THREE.MeshLambertMaterial({
+                color : 0x000000,
+                //shading : THREE.FlatShading,
+                overdraw : true,
+                //map : texture
+            });
 
-					for (var i = 0, l = object.children.length; i < l; i++) {
+            box = new THREE.Mesh(boxGeometry, boxMaterial);
+            //myWorld.setWorldCar();
+            box.position.x = xPos;
+            box.position.y = yPos;
+            box.position.z = zPos - 120;
+            box.castShoadow = true;
+            box.receiveShadow = true;
+            collidableMeshList.push(box);
+            box.material.wireframe = true;
+            scene.add(box);
+        }
 
-						object.children[i].material.map = texture1;
+        function createBulletObj() {
+            loader2.load('obj/bullet.dae', function colladaReady(collada) {
+                bulletObj = collada.scene;
 
-					}
-					object.scale.x = object.scale.y = object.scale.z = 5;
-					object.position.x = xPos;
-					object.position.y = 0;
-					object.position.z = zPos;
-					object.rotation.x = -(Math.PI) / 2;
-					//objects.push(object);
-					scene.add(object);
+                bulletObj.scale.x = bulletObj.scale.y = bulletObj.scale.z = 30;
+                bulletObj.updateMatrix();
+                bulletObj.position.x = 0;
+                bulletObj.position.y = 0;
+                bulletObj.position.z = 0;
 
-				});
-				loader.load('obj/Palm_Tree.obj');
+                //bulletObj.rotation.x = -(Math.PI / 2);
 
-				var texture = THREE.ImageUtils.loadTexture("obj/crate.gif");
-				texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
-				texture.repeat.set(.5, .5);
-				var boxGeometry = new THREE.CubeGeometry(30, 650, 30);
-				var boxMaterial = new THREE.MeshLambertMaterial({
-					// color : 0x5CD715,
-					shading : THREE.FlatShading,
-					overdraw : true,
-					map : texture
+                bulletObj.rotation.y = (Math.PI / 2);
 
-				});
+                //localObject.rotation.z = -(Math.PI / 2);
+                //collidableMeshList3 = localObject;
+                //console.log(collidableMeshList3);
+                scene.add(bulletObj);
 
-				box = new THREE.Mesh(boxGeometry, boxMaterial);
+            });
+        }
 
-				box.position.x = xPos;
-				box.position.y = 0;
-				box.position.z = zPos;
-				box.castShadow = true;
-				box.transparent = true;
-				collidableMeshList.push(box);
-				//	box.material.wireframe = true;
-				scene.add(box);
+        function createBulletObjPosition(xPos, yPos, zPos) {
+            bulletObj.position.x = xPos;
+            bulletObj.position.y = yPos;
+            bulletObj.position.z = zPos;
+        }
 
-			}
+        function createTrees(xPos, yPos, zPos) {
+            //mapDrawTree(zPos, xPos);
+            treesPositionX[treeIndex] = xPos;
+            treesPositionZ[treeIndex] = zPos;
+            treeIndex++;
+            var texture1 = new THREE.Texture();
 
-			function distance(x1, y1, x2, y2) {
+            var loader = new THREE.ImageLoader();
+            loader.addEventListener('load', function(event) {
 
-				var dis = Math.sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1));
-				return dis;
-			}
+                texture1.image = event.content;
+                texture1.needsUpdate = true;
 
-			function checkHit(bullet) {
+            });
+            loader.load('obj/normal_L1010014.jpg');
 
-				for (var i = collidableMeshList.length - 1; i >= 0; i--) {
-					var collideMesh = collidableMeshList[i];
-					var v = collideMesh.geometry.vertices[0];
-					var c = collideMesh.position;
-					var x = Math.abs(v.x), z = Math.abs(v.z);
+            // model
 
-					if (bullet.x < c.x + x && bullet.x > c.x - x && bullet.z < c.z + z && bullet.z > c.z - z) {
+            var loader = new THREE.OBJLoader();
+            loader.addEventListener('load', function(event) {
 
-						return true;
-					}
-				}
+                var object = event.content;
 
-				return false;
-			}
+                for (var i = 0, l = object.children.length; i < l; i++) {
 
-			function getEnemyCordinates(xPos, zPos) {
+                    object.children[i].material.map = texture1;
 
-				if (xPos > 0 && zPos > 0)
-					return 1;
-				else if (xPos < 0 && zPos > 0)
-					return 2;
-				else if (xPos < 0 && zPos < 0)
-					return 3;
-				else if (xPos > 0 && zPos < 0)
-					return 4;
-			}
+                }
+                object.scale.x = object.scale.y = object.scale.z = 5;
+                object.position.x = xPos;
+                object.position.y = 0;
+                object.position.z = zPos;
+                object.rotation.x = -(Math.PI) / 2;
+                //objects.push(object);
+                scene.add(object);
 
-			function getPlayerCordinates(xPos, zPos) {
-				if (xPos > 0 && zPos > 0)
-					return 1;
-				else if (xPos < 0 && zPos > 0)
-					return 2;
-				else if (xPos < 0 && zPos < 0)
-					return 3;
-				else if (xPos > 0 && zPos < 0)
-					return 4;
-			}
+            });
+            loader.load('obj/Palm_Tree.obj');
 
-			function render() {
+            var texture = THREE.ImageUtils.loadTexture("obj/crate.gif");
+            texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+            texture.repeat.set(.5, .5);
+            var boxGeometry = new THREE.CubeGeometry(30, 650, 30);
+            var boxMaterial = new THREE.MeshLambertMaterial({
+                // color : 0x5CD715,
+                shading : THREE.FlatShading,
+                overdraw : true,
+                map : texture
+
+            });
+
+            box = new THREE.Mesh(boxGeometry, boxMaterial);
+
+            box.position.x = xPos;
+            box.position.y = 0;
+            box.position.z = zPos;
+            box.castShadow = true;
+            box.transparent = true;
+            collidableMeshList.push(box);
+            //	box.material.wireframe = true;
+            scene.add(box);
+
+        }
+
+        function distance(x1, y1, x2, y2) {
+
+            var dis = Math.sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1));
+            return dis;
+        }
+
+        function checkHit(bullet) {
+
+            for (var i = collidableMeshList.length - 1; i >= 0; i--) {
+                var collideMesh = collidableMeshList[i];
+                var v = collideMesh.geometry.vertices[0];
+                var c = collideMesh.position;
+                var x = Math.abs(v.x), z = Math.abs(v.z);
+
+                if (bullet.x < c.x + x && bullet.x > c.x - x && bullet.z < c.z + z && bullet.z > c.z - z) {
+
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        function getEnemyCordinates(xPos, zPos) {
+
+            if (xPos > 0 && zPos > 0)
+                return 1;
+            else if (xPos < 0 && zPos > 0)
+                return 2;
+            else if (xPos < 0 && zPos < 0)
+                return 3;
+            else if (xPos > 0 && zPos < 0)
+                return 4;
+        }
+
+        function getPlayerCordinates(xPos, zPos) {
+            if (xPos > 0 && zPos > 0)
+                return 1;
+            else if (xPos < 0 && zPos > 0)
+                return 2;
+            else if (xPos < 0 && zPos < 0)
+                return 3;
+            else if (xPos > 0 && zPos < 0)
+                return 4;
+        }
+
+        function render() {
 				
 				
 				
-				speedDraw();
-				healthDraw(myWorld.healthControl());
-				//console.log(myWorld.healthControl() + "heath");
-				mapDraw();
+            speedDraw();
+            healthDraw(myWorld.healthControl());
+            //console.log(myWorld.healthControl() + "heath");
+            mapDraw();
 				
 
-				//createMines(localObject.position.x, 0, localObject.position.z);
-				ground.geometry.computeBoundingBox();
-				var bBox = ground.geometry.boundingBox;
-				//console.log(bBox.max.y);
+           // createMines(localObject.position.x, 0, localObject.position.z);
+            ground.geometry.computeBoundingBox();
+            var bBox = ground.geometry.boundingBox;
+            //console.log(bBox.max.y);
 
-				var cellX = (localObject.position.x - bBox.min.x) / 256;
-				var cellZ = (localObject.position.z - bBox.min.z) / 256;
+            var cellX = (localObject.position.x - bBox.min.x) / 256;
+            var cellZ = (localObject.position.z - bBox.min.z) / 256;
 
-				if (localObject.position.x >= bBox.min.x && localObject.position.x <= bBox.max.x)
-					//console.log("above the terrain " + bBox.max.y + " " + cellZ + " " + cellX);
-				for (var j = enemyCarr.length - 1; j >= 0; j--) {
+            if (localObject.position.x >= bBox.min.x && localObject.position.x <= bBox.max.x)
+            //console.log("above the terrain " + bBox.max.y + " " + cellZ + " " + cellX);
+                for (var j = enemyCarr.length - 1; j >= 0; j--) {
 
-					enemy = enemyCarr[j];
-					collision(enemy, collidableMeshList, j);
-					collision(enemy, collidableMesh, j);
+                    enemy = enemyCarr[j];
+                    collision(enemy, collidableMeshList, j);
+                    collision(enemy, collidableMesh, j);
 
-					var dist = distance(enemy.position.x, enemy.position.z, localObject.position.x, localObject.position.z);
+                    var dist = distance(enemy.position.x, enemy.position.z, localObject.position.x, localObject.position.z);
 
-					if (dist < 600 && Date.now() > enemy.lastShot + 750) {
-						object = createBullet(enemy, localObject);
-						enemy.lastShot = Date.now();
-						var snd = new Audio("audios/bulletFire.mp3"); // buffers automatically when created
-						snd.play();
-					}
-					// console.log("dist "+ dist + "enemy " + enemy.position.x);
-					// if(distance(enemy.position.x, enemy.position.z, localObject.position.x, localObject.position.z) < 700){
+                    if (dist < 600 && Date.now() > enemy.lastShot + 750) {
+                        object = createBullet(enemy, localObject);
+                        enemy.lastShot = Date.now();
+                        var snd = new Audio("audios/bulletFire.mp3"); // buffers automatically when created
+                        snd.play();
+                    }
+                // console.log("dist "+ dist + "enemy " + enemy.position.x);
+                // if(distance(enemy.position.x, enemy.position.z, localObject.position.x, localObject.position.z) < 700){
 
-					// Nspeed = myWorld.setEnemyCarSpeed(timer, true, index);
+                // Nspeed = myWorld.setEnemyCarSpeed(timer, true, index);
 
-					// }
+                // }
 
-					//scene.remove(enemy);
-				}
-				//scene.remove(car);
+                //scene.remove(enemy);
+            }
+            //scene.remove(car);
 
-				var delta = cloc.getDelta();
+            var delta = cloc.getDelta();
+				
+            customUniforms.time.value += 10 * delta;
+				
 
-				var bspeed = delta * 5000;
+				
 
-				var hit = false;
+            var hit = false;
+				
+				
+            for (var i = bullets.length - 1; i >= 0; i--) {
+                var bspeed = delta * 5000;
+                var b = bullets[i];
+                //createMines(b.position.x, 20, b.position.z);
+                //	scene.remove(mines);
 
-				for (var i = bullets.length - 1; i >= 0; i--) {
-					var b = bullets[i];
-					//createMines(b.position.x, 20, b.position.z);
-					//	scene.remove(mines);
+                d = b.ray.direction;
 
-					d = b.ray.direction;
+                if (checkHit(b.position) === true) {
+                    hit = true;
+                    bullets.splice(i, 1);
+                    scene.remove(b);
+                }
 
-					if (checkHit(b.position) === true) {
-						hit = true;
-						bullets.splice(i, 1);
-						scene.remove(b);
-					}
+                if (checkHit(localObject.position) === true) {
+                    speed = myWorld.CarMove("W", true);
+                }
 
-					if (checkHit(localObject.position) === true) {
-						speed = myWorld.CarMove("W", true);
-					}
+                if (!hit && b.owner != localObject) {
+                    //b.rotation.x = Math.PI / 2;
+                    //b.translateX(bspeed * (d.x));
+                    b.position.x += bspeed * (d.x);
+                    b.position.z += bspeed * (d.z);
+                    //b.translateZ(bspeed * (d.z));
+                    // bulletObj.translateX(bspeed * (d.x));
+                    // bulletObj.translateZ(bspeed * (d.z));
 
-					if (!hit && b.owner != localObject) {
-						//b.rotation.x = Math.PI / 2;
-						//b.translateX(bspeed * (d.x));
-						b.position.x += bspeed * (d.x);
-						b.position.z += bspeed * (d.z);
-						//b.translateZ(bspeed * (d.z));
-						// bulletObj.translateX(bspeed * (d.x));
-						// bulletObj.translateZ(bspeed * (d.z));
+                }
 
-					}
-
-					if (!hit && b.owner == localObject) {
-						//b.rotation.x = Math.PI / 2;
-						// b.translateX(bspeed * -(d.x));
-						// b.translateZ(bspeed * -(d.z));
-						b.position.x += bspeed * -(d.x);
-						b.position.z += bspeed * -(d.z);
+                if (!hit && b.owner == localObject) {
+                    //b.rotation.x = Math.PI / 2;
+                    // b.translateX(bspeed * -(d.x));
+                    // b.translateZ(bspeed * -(d.z));
+                    b.position.x += bspeed * -(d.x);
+                    b.position.z += bspeed * -(d.z);
 						
-						// bulletObj.translateX(bspeed * -(d.x));
-						// bulletObj.translateZ(bspeed * -(d.z));
+                    // bulletObj.translateX(bspeed * -(d.x));
+                    // bulletObj.translateZ(bspeed * -(d.z));
 						
 
-					}
+                }
 					
 					
-					dist = distance(b.position.x, b.position.z, localObject.position.x, localObject.position.z);
-					if (dist < 150 && b.owner != localObject) {
-						$('#hurt').fadeIn(75);
-						myWorld.healthControlreduce();
-						//speed = myWorld.CarMove("W", true);
-						//$('#health').html(myWorld.healthControl());
-						if (myWorld.healthControl() <= 0) {
-							//self.stopAnimating();
-							runAnim = false;
-							animatee = false;
-							$(renderer.domElement).fadeOut();
-							$('#radar').fadeOut();
-							$('#hud').fadeOut();
-							$('#intro').fadeIn();
-							$('#intro').html('Game Over! Click to restart...');
-							$('body').append('<div id="intro">Click to start</div>');
-							$('#intro').css({
-								width : 1366,
-								height : 768
-							}).one('click', function(e) {
+                dist = distance(b.position.x, b.position.z, localObject.position.x, localObject.position.z);
+                if (dist < 150 && b.owner != localObject) {
+                    $('#hurt').fadeIn(75);
+                    myWorld.healthControlreduce();
+                    //speed = myWorld.CarMove("W", true);
+                    //$('#health').html(myWorld.healthControl());
+                    if (myWorld.healthControl() <= 0) {
+                        //self.stopAnimating();
+                        runAnim = false;
+                        animatee = false;
+                        $(renderer.domElement).fadeOut();
+                        $('#radar').fadeOut();
+                        $('#hud').fadeOut();
+                        $('#intro').fadeIn();
+                        $('#intro').html('Game Over! Click to restart...');
+                        $('body').append('<div id="intro">Click to start</div>');
+                        $('#intro').css({
+                            width : 1366,
+                            height : 768
+                        }).one('click', function(e) {
 
-								location = location;
-							});
-						}
-						bullets.splice(i, 1);
-						scene.remove(b);
-						//bulletObj.position.x = 10000;
-						$('#hurt').fadeOut(350);
+                            location = location;
+                        });
+                    }
+                    bullets.splice(i, 1);
+                    scene.remove(b);
+                    //bulletObj.position.x = 10000;
+                    $('#hurt').fadeOut(350);
 
-					}
+                }
 
-					for (var j = enemyCarr.length - 1; j >= 0; j--) {
+                for (var j = enemyCarr.length - 1; j >= 0; j--) {
 
-						enemy = enemyCarr[j];
+                    enemy = enemyCarr[j];
 
-						var dist = distance(enemy.position.x, enemy.position.z, b.position.x, b.position.z);
+                    var dist = distance(enemy.position.x, enemy.position.z, b.position.x, b.position.z);
 
-						if (dist < 150 && b.owner == localObject) {
+                    if (dist < 150 && b.owner == localObject) {
 
-							//if (j == 0) {
-							$('#enemyHealth1').html(myWorld.enemyHealthControl(j));
-							if (myWorld.enemyHealthControl() <= 0) {
-								//	$('#enemyHealth1').html("Finished");
-								//	enemy.position.x = 150000;
-								//	enemy.position.z = 150000;
-								//scene.remove(enemy);
-								//animatee = false;
-								enemyCarr[j].position.x = 150000;
-								enemyCarr[j].position.z = 150000;
+                        //if (j == 0) {
+                        $('#enemyHealth1').html(myWorld.enemyHealthControl(j));
+                        if (myWorld.enemyHealthControl() <= 0) {
+                            //	$('#enemyHealth1').html("Finished");
+                            //	enemy.position.x = 150000;
+                            //	enemy.position.z = 150000;
+                            //scene.remove(enemy);
+                            //animatee = false;
+                            enemyCarr[j].position.x = 150000;
+                            enemyCarr[j].position.z = 150000;
 
-							}
+                        }
 
-							// } else if (j == 1) {
-							// $('#enemyHealth2').html(myWorld.enemyHealthControl(j));
+                        bullets.splice(i, 1);
+                        scene.remove(b);
+                        //Nspeed = myWorld.setEnemyCarSpeed(timer, true, j);
+                    }
 
-							// if (myWorld.enemyHealthControl() <= 0) {
-							// $('#enemyHealth2').html("Finished");
-							// enemy.position.x = 150000;
-							// enemy.position.z = 150000;
-							// //scene.remove(enemy);
+                    //scene.remove(enemy);
+                }
 
-							// }
-							// } else if (j == 2) {
-							// $('#enemyHealth3').html(myWorld.enemyHealthControl(j));
-							// if (myWorld.enemyHealthControl() <= 0) {
-							// $('#enemyHealth3').html("Finished");
-							// enemy.position.x = 150000;
-							// enemy.position.z = 150000;
-							// //scene.remove(enemy);
+            }
+            //localObject.rotation.y = -.5
+            var rotationAngle = 0.05 * Math.abs(speed / 10);
+            if (rotationAngle > 0.05)
+                rotationAngle = 0.05;
 
-							// }
-							// }
-							bullets.splice(i, 1);
+            if (keyboard.pressed("A")) {
+                localObject.rotation.z += rotationAngle;
+
+                if (localObject.rotation.z > 6)
+                    localObject.rotation.z -= 6;
+            }
+
+            if (keyboard.pressed("D")) {
+                localObject.rotation.z -= rotationAngle;
+                if (localObject.rotation.z < 0)
+                    localObject.rotation.z = 6 + localObject.rotation.z;
+            }
+            if (keyboard.pressed("W")) {
+                //speed += acceleration;
+
+                speed = myWorld.CarMove("W", false);
+
+                $('#speed').html(speed);
+
+            }
+            if (keyboard.pressed("S")) {
+
+                speed = myWorld.CarMove("S", false);
+                $('#speed').html(speed);
+
+            }
+            if (keyboard.pressed("up")) {
+                cameraYPos += cameraYPos > 500 ? 0 : 10;
+            }
+            if (keyboard.pressed("down")) {
+                cameraYPos -= cameraYPos <= 0 ? 0 : 10;
+            }
+
+            if (!keyboard.pressed("W") && !keyboard.pressed("S")) {
+
+                myWorld.CarMove("F", false);
+
+                $('#speed').html(speed);
+
+            }
+            // if (keyboard.pressed("P")) {
+                // gameMenu();
+
+            // }
+            // if (keyboard.pressed("space")) {
+            // object = createBullet();
+
+            // }
+            if (keyboard.pressed("Z")) {
+                getDirection();
+
+            }
+
+            // ==================================NEW ENEMY CAR=================================================s
+
+            // update car position
+            var phaseX = 1;
+            var phaseY = 1;
+            //var eR = myWorld.myCar.rotation.y;
+            var eR = localObject.rotation.x + localObject.rotation.z;
+            car.rotation.y = localObject.rotation.x + localObject.rotation.z;
+            //		wheel.rotation.y = localObject.rotation.x + localObject.rotation.z;
+            var computedX = (localObject.position.x + ((speed * Math.cos(eR)) * phaseX));
+            var computedZ = (localObject.position.z - ((speed * Math.sin(eR)) * phaseY));
+				
+
+            localObject.position.x = computedX;
+            localObject.position.z = computedZ;
+            //localObject.rotation.y = computedY;
+            car.position.x = computedX;
+            car.position.z = computedZ;
+
+            // =========================NEW ENEMY CAR========================================
+				// move = 'R';
+            var defference = 0;
+            //var hitDirection = false;
+				
+            if (enemyModels.length != 0){
+				
+				
+				
+                for (var k = 0; k < myWorld.noOfEnemies(); k++) {
+
+                    var enemyCordinates = getEnemyCordinates(enemyCarr[k].position.x, enemyCarr[k].position.z);
+                    var playerCordinates = getPlayerCordinates(localObject.position.x, localObject.position.z);
+					
+					getDirection(enemyCarr[k], cameraArray[k], localObject);
+					
+					// var vec1 = localObject.position.clone().normalize();
+					// var vec2 = enemyCarr[k].position.clone().normalize();
+					
+					
+					var b;
+                    for (var i = checkDirection.length - 1; i >= 0; i--) {
+                        b = checkDirection[i];
+                        //createMines(b.position.x, 20, b.position.z);
+                        //	scene.remove(mines);
+                        var bspeed = delta * 5000;
+                        d = b.ray.direction;
+                        b.position.x += bspeed * -(d.x);
+                        b.position.z += bspeed * -(d.z);
+
+						if (b.owner === enemyCarr[k] && distance (b.position.x, b.position.z, localObject.position.x, localObject.position.z) <= 300){
+							//move = 'L';
+							//var index = k;
+							hitDirection = true;
+							hitObj = enemyCarr[k];
 							scene.remove(b);
-							//Nspeed = myWorld.setEnemyCarSpeed(timer, true, j);
+							//indexDir = k;
+							//enemyModels[k].rotation.z = myWorld.setEnemyCarRotation('L', enemyModels[k].rotation.z, k);
 						}
-
-						//scene.remove(enemy);
-					}
-
-				}
-				//localObject.rotation.y = -.5
-				var rotationAngle = 0.05 * Math.abs(speed / 10);
-				if (rotationAngle > 0.05)
-					rotationAngle = 0.05;
-
-				if (keyboard.pressed("A")) {
-					localObject.rotation.z += rotationAngle;
-
-					if (localObject.rotation.z > 6)
-						localObject.rotation.z -= 6;
-				}
-
-				if (keyboard.pressed("D")) {
-					localObject.rotation.z -= rotationAngle;
-					if (localObject.rotation.z < 0)
-						localObject.rotation.z = 6 + localObject.rotation.z;
-				}
-				if (keyboard.pressed("W")) {
-					//speed += acceleration;
-
-					speed = myWorld.CarMove("W", false);
-
-					$('#speed').html(speed);
-
-				}
-				if (keyboard.pressed("S")) {
-
-					speed = myWorld.CarMove("S", false);
-					$('#speed').html(speed);
-
-				}
-				if (keyboard.pressed("up")) {
-					cameraYPos += cameraYPos > 500 ? 0 : 10;
-				}
-				if (keyboard.pressed("down")) {
-					cameraYPos -= cameraYPos <= 0 ? 0 : 10;
-				}
-
-				if (!keyboard.pressed("W") && !keyboard.pressed("S")) {
-
-					myWorld.CarMove("F", false);
-
-					$('#speed').html(speed);
-
-				}
-				if (keyboard.pressed("P")) {
-						gameMenu();
-
-				}
-				if (keyboard.pressed("space")) {
-						object = createBullet();
-
-				}
-				// if (keyboard.pressed("E")) {
-						// gameStart();
-
-				// }
-
-				// ==================================NEW ENEMY CAR=================================================s
-
-				// update car position
-				var phaseX = 1;
-				var phaseY = 1;
-				//var eR = myWorld.myCar.rotation.y;
-				var eR = localObject.rotation.x + localObject.rotation.z;
-				car.rotation.y = localObject.rotation.x + localObject.rotation.z;
-				//		wheel.rotation.y = localObject.rotation.x + localObject.rotation.z;
-				var computedX = (localObject.position.x + ((speed * Math.cos(eR)) * phaseX));
-				var computedZ = (localObject.position.z - ((speed * Math.sin(eR)) * phaseY));
-				
-
-				localObject.position.x = computedX;
-				localObject.position.z = computedZ;
-				//localObject.rotation.y = computedY;
-				car.position.x = computedX;
-				car.position.z = computedZ;
-
-				// =========================NEW ENEMY CAR========================================
-				var move = 'R';
-				var defference = 0;
-				if (enemyModels.length != 0){
-				
-				
-				
-				for (var k = 0; k < myWorld.noOfEnemies(); k++) {
-
-					var enemyCordinates = getEnemyCordinates(enemyCarr[k].position.x, enemyCarr[k].position.z);
-					var playerCordinates = getPlayerCordinates(localObject.position.x, localObject.position.z);
+						
+						
+						
+						
 					
-					leftPoint[k].position.z = enemyCarr[k].position.z + 50;
-					leftPoint[k].position.x = enemyCarr[k].position.x + 50;
-					leftPoint[k].position.y = 100;
-					rightPoint[k].position.z = enemyCarr[k].position.z - 50;
-					rightPoint[k].position.x = enemyCarr[k].position.x - 50;
-					rightPoint[k].position.y = 100;
+                    }
 					
 					
+                    //var rotation = enemyModels[k].rotation.z - localObject.rotation.z;
+					if (hitDirection == true && hitObj == enemyCarr[k]){
 					
-					var dist1 = distance(rightPoint[k].position.x, rightPoint[k].position.z, localObject.position.x, localObject.position.z);
-					var dist2 = distance(leftPoint[k].position.x, leftPoint[k].position.z, localObject.position.x, localObject.position.z);
-					if (dist1 > dist2) {
-						move = 'L';
-					} else if (dist1 < dist2) {
-						move = 'R';
-					} else if (dist1 + dist2 > 1000) {
-						move = 'S';
-					}				
-					console.log("Distance 1: " + dist1 + " Distance 2: " + dist2);
-					enemyModels[k].rotation.z = myWorld.setEnemyCarRotation(move, enemyModels[k].rotation.z, 1);
+					enemyModels[k].rotation.z = myWorld.setEnemyCarRotation('S', enemyModels[k].rotation.z, k);
 					enemyCarr[k].rotation.y = enemyModels[k].rotation.z + enemyModels[k].rotation.x;
+                    leftPoint[k].rotation.x =  enemyModels[k].rotation.x;
+                    leftPoint[k].rotation.z =  enemyModels[k].rotation.z;
 					
+                    var eRN = enemyModels[k].rotation.z + enemyModels[k].rotation.x;
+                    cameraArray[k].position.x = enemyCarr[k].position.x - (Math.cos(eRN) * 500 );
+                    cameraArray[k].position.z = enemyCarr[k].position.z + (Math.sin(eRN) * 500 );
+                    cameraArray[k].lookAt(enemyCarr[k].position);
 					
-					var eRN = enemyModels[k].rotation.z + enemyModels[k].rotation.x;
+                    leftPoint[k].position.x = enemyCarr[k].position.x - (Math.cos(eRN) * 500 );
+                    leftPoint[k].position.z = enemyCarr[k].position.z + (Math.sin(eRN) * 500 );
 					
-					
-					enemyCarr[k].position.x = myWorld.setEnemyCarNewPositionX(myWorld.setEnemyCarSpeed(timer, false, k), eRN, enemyCarr[k].position.x, k);
-					enemyCarr[k].position.z = myWorld.setEnemyCarNewPositionZ(myWorld.setEnemyCarSpeed(timer, false, k), eRN, enemyCarr[k].position.z, k);
-					
-					enemyModels[k].position.x = enemyCarr[k].position.x;
-					enemyModels[k].position.z = enemyCarr[k].position.z;
-					
-					//enemyModels[k].lookAt(localObject.position);
-					
-					//enemyModels[k].lookAt( new THREE.Vector3(-1, 0, 1) );
-					
-					// var dir = localObject.position - enemyModels[k].position;
-					// var ray = new THREE.Ray(enemyModels[k].position, new THREE.Vector3(-1, 0, 0));
-
-					
-					
-				
-					
-					if (k > myWorld.noOfEnemies()) {
-						k = 1;
-
+					if (distance (enemyCarr[k].position.x, enemyCarr[k].position.z, localObject.position.x, localObject.position.z) <= 600){
+                    enemyCarr[k].position.x = myWorld.setEnemyCarNewPositionX(myWorld.setEnemyCarSpeed('L', false, k), eRN, enemyCarr[k].position.x, k);
+                    enemyCarr[k].position.z = myWorld.setEnemyCarNewPositionZ(myWorld.setEnemyCarSpeed('L', false, k), eRN, enemyCarr[k].position.z, k);
+					}
+					else{
+					enemyCarr[k].position.x = myWorld.setEnemyCarNewPositionX(myWorld.setEnemyCarSpeed('R', false, k), eRN, enemyCarr[k].position.x, k);
+                    enemyCarr[k].position.z = myWorld.setEnemyCarNewPositionZ(myWorld.setEnemyCarSpeed('R', false, k), eRN, enemyCarr[k].position.z, k);
 					}
 					
+                    enemyModels[k].position.x = enemyCarr[k].position.x;
+                    enemyModels[k].position.z = enemyCarr[k].position.z;
+					//hitDirection = false;
+					}
+					else{
+					enemyModels[k].rotation.z = myWorld.setEnemyCarRotation(move, enemyModels[k].rotation.z, k);
+					enemyCarr[k].rotation.y = enemyModels[k].rotation.z + enemyModels[k].rotation.x;
+                    leftPoint[k].rotation.x =  enemyModels[k].rotation.x;
+                    leftPoint[k].rotation.z =  enemyModels[k].rotation.z;
+					
+                    var eRN = enemyModels[k].rotation.z + enemyModels[k].rotation.x;
+                    cameraArray[k].position.x = enemyCarr[k].position.x - (Math.cos(eRN) * 500 );
+                    cameraArray[k].position.z = enemyCarr[k].position.z + (Math.sin(eRN) * 500 );
+                    cameraArray[k].lookAt(enemyCarr[k].position);
+					
+                    leftPoint[k].position.x = enemyCarr[k].position.x - (Math.cos(eRN) * 500 );
+                    leftPoint[k].position.z = enemyCarr[k].position.z + (Math.sin(eRN) * 500 );
+					
+                    if (distance (enemyCarr[k].position.x, enemyCarr[k].position.z, localObject.position.x, localObject.position.z) <= 600){
+                    enemyCarr[k].position.x = myWorld.setEnemyCarNewPositionX(myWorld.setEnemyCarSpeed('L', false, k), eRN, enemyCarr[k].position.x, k);
+                    enemyCarr[k].position.z = myWorld.setEnemyCarNewPositionZ(myWorld.setEnemyCarSpeed('L', false, k), eRN, enemyCarr[k].position.z, k);
+					}
+					else{
+					enemyCarr[k].position.x = myWorld.setEnemyCarNewPositionX(myWorld.setEnemyCarSpeed('R', false, k), eRN, enemyCarr[k].position.x, k);
+                    enemyCarr[k].position.z = myWorld.setEnemyCarNewPositionZ(myWorld.setEnemyCarSpeed('R', false, k), eRN, enemyCarr[k].position.z, k);
+					}
+					
+                    enemyModels[k].position.x = enemyCarr[k].position.x;
+                    enemyModels[k].position.z = enemyCarr[k].position.z;
+					
+					}
+					
+                     // enemyModels[k].rotation.z = myWorld.setEnemyCarRotation(move, enemyModels[k].rotation.z, k);
+                    //enemyModels[k].rotation.z = Math.atan(rotation);
+                    // enemyCarr[k].rotation.y = enemyModels[k].rotation.z + enemyModels[k].rotation.x;
+                    // leftPoint[k].rotation.x =  enemyModels[k].rotation.x;
+                    // leftPoint[k].rotation.z =  enemyModels[k].rotation.z;
+					
+                    // var eRN = enemyModels[k].rotation.z + enemyModels[k].rotation.x;
+                    // cameraArray[k].position.x = enemyCarr[k].position.x - (Math.cos(eRN) * 500 );
+                    // cameraArray[k].position.z = enemyCarr[k].position.z + (Math.sin(eRN) * 500 );
+                    // cameraArray[k].lookAt(enemyCarr[k].position);
+					
+                    // leftPoint[k].position.x = enemyCarr[k].position.x - (Math.cos(eRN) * 500 );
+                    // leftPoint[k].position.z = enemyCarr[k].position.z + (Math.sin(eRN) * 500 );
+					
+                    // enemyCarr[k].position.x = myWorld.setEnemyCarNewPositionX(myWorld.setEnemyCarSpeed(move, false, k), eRN, enemyCarr[k].position.x, k);
+                    // enemyCarr[k].position.z = myWorld.setEnemyCarNewPositionZ(myWorld.setEnemyCarSpeed(move, false, k), eRN, enemyCarr[k].position.z, k);
+					
+                    // enemyModels[k].position.x = enemyCarr[k].position.x;
+                    // enemyModels[k].position.z = enemyCarr[k].position.z;
+					
+                    //enemyModels[k].lookAt(localObject.position);
+					
+                    //enemyModels[k].lookAt( new THREE.Vector3(-1, 0, 1) );
+					
+                    // var dir = localObject.position - enemyModels[k].position;
+                    // var ray = new THREE.Ray(enemyModels[k].position, new THREE.Vector3(-1, 0, 0));
 
-				 }
-}
-				//=======================old car speed==================================
+					
+					// var vec1 = localObject.position.clone().normalize();
+					// var vec2 = enemyCarr[k].position.clone().normalize();
+					
+					// console.log("Dot Product " + k + " " + Math.ceil(vec2.dot(vec1)));
+				
+					
+                    if (k > myWorld.noOfEnemies()) {
+                        k = 0;
 
-				if (speed > 0)
-					speed = speed - speedDamping;
-				else
-					speed = 0;
+                    }
+					
 
-				if (speed > maxSpeed)
-					speed = maxSpeed;
+                }
+            }
+            //=======================old car speed==================================
 
-				// camera.position.x = Math.cos(timer) * 200;
-				// camera.position.z = Math.sin(timer) * 200;
+            if (speed > 0)
+                speed = speed - speedDamping;
+            else
+                speed = 0;
 
-				camera.position.x = localObject.position.x - (Math.cos(eR) * 500 );
-				camera.position.z = localObject.position.z + (Math.sin(eR) * 500 );
+            if (speed > maxSpeed)
+                speed = maxSpeed;
 
-				// new car camera==============
+            // camera.position.x = Math.cos(timer) * 200;
+            // camera.position.z = Math.sin(timer) * 200;
 
-				// camera.position.x = Ncar.position.x - (Math.cos(eRN) * 500 );
-				// camera.position.z = Ncar.position.z + (Math.sin(eRN) * 500 );
+            camera.position.x = localObject.position.x - (Math.cos(eR) * 500 );
+            camera.position.z = localObject.position.z + (Math.sin(eR) * 500 );
 
-				camera.position.y = cameraYPos;
-				camera.lookAt(localObject.position);
-				//camera.lookAt(Ncar.position);
-				renderer.shadowMapEnabled = true;
-				renderer.render(scene, camera);
+            // new car camera==============
 
-			}
+            // camera.position.x = Ncar.position.x - (Math.cos(eRN) * 500 );
+            // camera.position.z = Ncar.position.z + (Math.sin(eRN) * 500 );
 
-		</script>
+            camera.position.y = cameraYPos;
+            camera.lookAt(localObject.position);
+				
+            //camera.lookAt(Ncar.position);
+            renderer.shadowMapEnabled = true;
+            renderer.render(scene, camera);
 
-	</body>
+        }
+
+    </script>
+
+</body>
 </html>

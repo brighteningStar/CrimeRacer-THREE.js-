@@ -7,7 +7,7 @@ CrimeRacer.World = function() {
 	this.noOfSides = 4;
 	this.noOfBlocksPerWall = 200;
 	this.carSpeedCkeck
-	this.noOfEnemy = 3;
+	this.noOfEnemy = 5;
 	this.noOfBoxes = 10;
 	
 	this.enemy = {
@@ -15,6 +15,14 @@ CrimeRacer.World = function() {
 		enemyCar2 : new CrimeRacer.enemyCar,
 		enemyCar3 : new CrimeRacer.enemyCar
 	};
+	
+	this.enemyCarArray = [];
+	
+	for (var i = 0; i < this.noOfEnemy; i++){
+		
+		enemyCars = new CrimeRacer.enemyCar;
+		this.enemyCarArray.push(enemyCars);
+	}
 
 	//for(var i = 0; i < this.noOfEnemy; i++){
 	//this.enemyCar = new CrimeRacer.enemyCar ;
@@ -160,18 +168,30 @@ CrimeRacer.World.prototype.setWorldCar = function() {
 
 CrimeRacer.World.prototype.setWorldEnemyCar = function(EnemyCarId) {
 
+	this.enemyCar = this.enemyCarArray[EnemyCarId - 1];
+	//this.enemyCar.setPos(Math.floor((Math.random() * 1000)+ 1), 0, Math.floor((Math.random() * 1000)+ 1))
 	if (EnemyCarId == 1) {
-		this.enemyCar = this.enemy.enemyCar1;
+		//this.enemyCar = this.enemy.enemyCar1;
 		this.enemyCar.setPos(-1000, 0, -1000);
 	}
 	if (EnemyCarId == 2) {
-		this.enemyCar = this.enemy.enemyCar2;
+		//this.enemyCar = this.enemy.enemyCar2;
 		this.enemyCar.setPos(2000, 0, 1000);
 	}
 	if (EnemyCarId == 3) {
-		this.enemyCar = this.enemy.enemyCar3;
+		//this.enemyCar = this.enemy.enemyCar3;
 		this.enemyCar.setPos(-3000, 0, 1000);
 	}
+	if (EnemyCarId == 4) {
+		//this.enemyCar = this.enemy.enemyCar3;
+		this.enemyCar.setPos(1000, 0, 1000);
+	}
+	if (EnemyCarId == 4) {
+		//this.enemyCar = this.enemy.enemyCar3;
+		this.enemyCar.setPos(3000, 0, 5000);
+	}
+	// this.enemyCar = this.enemyCarArray[EnemyCarId - 1];
+	//this.enemyCar.setPos(-1000, 0, -1000);
 
 }
 
@@ -183,29 +203,32 @@ CrimeRacer.World.prototype.getEnemyCarRotaion = function() {
 
 CrimeRacer.World.prototype.setEnemyCarSpeed = function(timer, hit, id) {
 
-	if (id == 0) {
-		this.enemyCar = this.enemy.enemyCar1;
+	if(id != undefined){
+		this.enemyCar = this.enemyCarArray[id];
+	}
+	// if (id == 0) {
+		// this.enemyCar = this.enemy.enemyCar1;
 	
 
-	}
-	if (id == 1) {
-		this.enemyCar = this.enemy.enemyCar2;
+	// }
+	// if (id == 1) {
+		// this.enemyCar = this.enemy.enemyCar2;
 
-	}
-	if (id == 2) {
-		this.enemyCar = this.enemy.enemyCar3;
+	// }
+	// if (id == 2) {
+		// this.enemyCar = this.enemy.enemyCar3;
 
-	}
+	// }
 	if (hit === false) {
-		if (timer > 0 && timer < 55) {
+		if (timer == 'R') {
 
 			this.carSpeedCkeck = this.enemyCar.moveForward();
 
 		}
 
-		if (timer >= 55 && timer <= 59) {
+		else if (timer == 'L') {
 
-			this.carSpeedCkeck = this.enemyCar.moveBackword();
+			this.carSpeedCkeck = this.enemyCar.stopCar();
 
 		}
 	} else if (hit === true) {
@@ -214,29 +237,31 @@ CrimeRacer.World.prototype.setEnemyCarSpeed = function(timer, hit, id) {
 		this.carSpeedCkeck = this.enemyCar.carHit();
 
 	}
-
+	console.log(this.carSpeedCkeck);
 	return this.carSpeedCkeck;
 
 }
 
 CrimeRacer.World.prototype.setEnemyCarRotation = function(move, rotation, id) {
-	if (id == 0) {
-		this.enemyCar = this.enemy.enemyCar1;
+	
+	this.enemyCar = this.enemyCarArray[id];
+	// if (id == 0) {
+		// this.enemyCar = this.enemy.enemyCar1;
 
-	}
-	if (id == 1) {
-		this.enemyCar = this.enemy.enemyCar2;
+	// }
+	// if (id == 1) {
+		// this.enemyCar = this.enemy.enemyCar2;
 
-	}
-	if (id == 2) {
-		this.enemyCar = this.enemy.enemyCar3;
-	}
+	// }
+	// if (id == 2) {
+		// this.enemyCar = this.enemy.enemyCar3;
+	// }
 
 	this.enemyCar.rotationalAngle = 0.05 * Math.abs(this.enemyCar.speed / 10);
 	if (this.enemyCar.rotationalAngle > 0.05)
 		this.enemyCar.rotationalAngle = 0.05;
 
-	if (move == 'L') {
+	if (move === 'L') {
 		rotation += this.enemyCar.rotationalAngle;
 		if (rotation > 6) {
 			this.rotation -= 6;
@@ -244,7 +269,7 @@ CrimeRacer.World.prototype.setEnemyCarRotation = function(move, rotation, id) {
 		}
 		return rotation;
 	}
-	if (move == 'R') {
+	if (move === 'R') {
 		rotation -= this.enemyCar.rotationalAngle;
 		if (rotation < 0) {
 			rotation = 6 + rotation;
@@ -252,12 +277,12 @@ CrimeRacer.World.prototype.setEnemyCarRotation = function(move, rotation, id) {
 		}
 		return rotation;
 	}
-	if (move == 'S') {
-		rotation -= this.enemyCar.rotationalAngle;
-		if (rotation < 0) {
-			rotation = 0;
-			return rotation;
-		}
+	if (move === 'S') {
+		//rotation = this.enemyCar.rotationalAngle;
+		// if (rotation < 0) {
+			// rotation = 0;
+			// return rotation;
+		// }
 		return rotation;
 	}
 
@@ -266,17 +291,18 @@ CrimeRacer.World.prototype.setEnemyCarRotation = function(move, rotation, id) {
 CrimeRacer.World.prototype.setEnemyCarNewPositionX = function(Speed, rotation, xPosition, id) {
 
 	//console.log("spped" + speed);
-	if (id == 0) {
-		this.enemyCar = this.enemy.enemyCar1;
+	this.enemyCar = this.enemyCarArray[id];
+	// if (id == 0) {
+		// this.enemyCar = this.enemy.enemyCar1;
 
-	}
-	if (id == 1) {
-		this.enemyCar = this.enemy.enemyCar2;
+	// }
+	// if (id == 1) {
+		// this.enemyCar = this.enemy.enemyCar2;
 
-	}
-	if (id == 2) {
-		this.enemyCar = this.enemy.enemyCar3;
-	}
+	// }
+	// if (id == 2) {
+		// this.enemyCar = this.enemy.enemyCar3;
+	// }
 
 	newXPosition = (xPosition + (this.enemyCar.speed * Math.cos(rotation)) * this.enemyCar.phaseX);
 	return newXPosition;
@@ -284,18 +310,19 @@ CrimeRacer.World.prototype.setEnemyCarNewPositionX = function(Speed, rotation, x
 }
 
 CrimeRacer.World.prototype.setEnemyCarNewPositionZ = function(Speed, rotation, zPosition, id) {
+	
+	this.enemyCar = this.enemyCarArray[id];
+	// if (id == 0) {
+		// this.enemyCar = this.enemy.enemyCar1;
 
-	if (id == 0) {
-		this.enemyCar = this.enemy.enemyCar1;
+	// }
+	// if (id == 1) {
+		// this.enemyCar = this.enemy.enemyCar2;
 
-	}
-	if (id == 1) {
-		this.enemyCar = this.enemy.enemyCar2;
-
-	}
-	if (id == 2) {
-		this.enemyCar = this.enemy.enemyCar3;
-	}
+	// }
+	// if (id == 2) {
+		// this.enemyCar = this.enemy.enemyCar3;
+	// }
 
 	newZPosition = (zPosition - (this.enemyCar.speed * Math.sin(rotation)) * this.enemyCar.phaseY);
 	return newZPosition;
@@ -317,17 +344,20 @@ CrimeRacer.World.prototype.healthControlreduce = function() {
 
 CrimeRacer.World.prototype.enemyHealthControl = function(id) {
 
-	if (id == 0) {
-		this.enemyCar = this.enemy.enemyCar1;
+	if(id != undefined)
+	this.enemyCar = this.enemyCarArray[id];
+	// if (id == 0) {
+		
+		// this.enemyCar = this.enemy.enemyCar1;
 
-	}
-	if (id == 1) {
-		this.enemyCar = this.enemy.enemyCar2;
+	// }
+	// if (id == 1) {
+		// this.enemyCar = this.enemy.enemyCar2;
 
-	}
-	if (id == 2) {
-		this.enemyCar = this.enemy.enemyCar3;
-	}
+	// }
+	// if (id == 2) {
+		// this.enemyCar = this.enemy.enemyCar3;
+	// }
 		return this.enemyCar.getHealth();
 }
 
