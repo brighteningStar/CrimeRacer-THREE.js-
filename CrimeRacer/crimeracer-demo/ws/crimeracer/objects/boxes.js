@@ -10,6 +10,7 @@ CrimeRacer.Boxes = function() {
 		z : 0
 	};
 	// default at position 0
+	this.health = 100;
 }
 var myFunctionBoxPos = function() {
 	if ( typeof myFunctionBoxPos.myStaticVar === 'undefined') {
@@ -26,6 +27,10 @@ CrimeRacer.Boxes.prototype.setPos = function(xPos, yPos, zPos) {
 	this.position.y = yPos;
 	this.position.z = Math.floor((Math.random()* -7000)+1);
 
+}
+CrimeRacer.Boxes.prototype.getHealth = function() {
+
+	return this.health -= 3;
 }
 
 

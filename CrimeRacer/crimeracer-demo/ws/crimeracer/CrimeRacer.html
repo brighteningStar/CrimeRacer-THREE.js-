@@ -17,7 +17,7 @@
             overflow: hidden;//
             background-image: url('images/Bodybackground.jpg');
             color: black;
-			position: absolute;
+            position: absolute;
         }
         #hud {
             top: 10px;
@@ -299,10 +299,15 @@
         var cameras;
         var cameraArray = [];
         var move = 'R';
-		var hitDirection = false;
-		var hitObj;
-		var indexDir = 0;
-			
+        var hitDirection = false;
+        var hitObj;
+        var indexDir = 0;
+        var ball;
+        var arrayTrue = [];
+        var text;
+        var boomer;
+        var boxContainer = [];
+		var pointLeft;
 
         // animate();
 
@@ -427,7 +432,8 @@
             groundBasic.color.setHSV(0.1, 0.45, 0.995);
 
             ground = new THREE.Mesh(new THREE.PlaneGeometry(15000, 15000, worldWidth - 1, worldDepth - 1), groundBasic);
-            console.log(ground.geometry.vertices.length);
+            
+            //console.log(ground.geometry.vertices.length);
 
             //	ground.position.x = 10000;
             ground.position.y = 0;
@@ -459,15 +465,15 @@
 				
 				
             // base image texture for mesh
-            var lavaTexture = new THREE.ImageUtils.loadTexture( 'images/lava.jpg');
+            var lavaTexture = new THREE.ImageUtils.loadTexture( 'images/blast.jpg');
             lavaTexture.wrapS = lavaTexture.wrapT = THREE.RepeatWrapping;
             // multiplier for distortion speed 
             var baseSpeed = 0.02;
             // number of times to repeat texture in each direction
-            var repeatS = repeatT = 4.0;
+            var repeatS = repeatT = 10;
 
             // texture used to generate "randomness", distort all other textures
-            var noiseTexture = new THREE.ImageUtils.loadTexture( 'images/cloud10.png' );
+            var noiseTexture = new THREE.ImageUtils.loadTexture( 'images/blast.jpg' );
             noiseTexture.wrapS = noiseTexture.wrapT = THREE.RepeatWrapping;
             // magnitude of noise effect
             var noiseScale = 0.5;
@@ -514,10 +520,10 @@
                 Cuniforms: customUniforms,
                 vertexShader:   document.getElementById( 'vertexShader'   ).textContent,
                 fragmentShader: document.getElementById( 'fragmentShader' ).textContent
-            }   );
+            });
 
-            var ballGeometry = new THREE.PlaneGeometry( 100, 100);
-            var ball = new THREE.Mesh( ballGeometry, customMaterial );
+            var ballGeometry = new THREE.PlaneGeometry( 50, 50);
+            ball = new THREE.Mesh( ballGeometry, customMaterial );
             ball.rotation.x = -Math.PI / 2;
             scene.add( ball );
 			
@@ -672,6 +678,9 @@
             scene.add(car);
 
             createEnemies();
+            text = createEnemies2();
+			
+            boomer = new TextureAnimator( text, 4, 4, 16, 55 );
 				
             // ============================================BOX MAKING==============================
             for (var i = 0; i < myWorld.noOfBox(); i++) {
@@ -705,7 +714,46 @@
             mesh.rotation.x = -(Math.PI) / 2;
             mesh.rotation.z = -(Math.PI) / 2;
             scene.add(mesh);
+			
+            // var skyBoxGeometry = new THREE.CubeGeometry( 20000, 20000, 20000 );
+            // var skyBoxMaterial = new THREE.MeshBasicMaterial( { color: 0x9999ff, side: THREE.BackSide } );
+            // var skyBox = new THREE.Mesh( skyBoxGeometry, skyBoxMaterial );
+            // scene.add(skyBox);
 
+	
+	
+            // THREE.SceneUtils.traverseHierarchy( localObject, function ( child ) {
+
+            // if ( child.material ) {
+
+            // var shader = THREE.ShaderUtils.lib[ "normal" ];
+            // var uniforms = THREE.UniformsUtils.clone( shader.uniforms );
+
+            // // uniforms[ "tDiffuse" ].texture = THREE.ImageUtils.loadTexture(type: "t", value: lavaTexture  );
+            // // uniforms[ "tNormal" ].texture = THREE.ImageUtils.loadTexture(type: "t", value: blendTexture  );
+            // // uniforms[ "tSpecular" ].texture = THREE.ImageUtils.loadTexture(type: "t", value: bumpTexture  );
+		
+            // text = new THREE.Texture();
+
+            // var loader = new THREE.ImageLoader();
+            // loader.addEventListener('load', function(event) {
+
+            // text.image = event.content;
+            // text.needsUpdate = true;
+
+            // });
+            // loader.load('images/lava.jpg');
+            // uniforms[ "enableDiffuse" ].value = true;
+            // uniforms[ "enableSpecular" ].value = true;
+
+            // child.geometry.computeTangents();
+
+            // child.material.map = text;
+		
+
+            // }
+
+            // } );
             //====================================================================================
 
             // Lights
@@ -823,7 +871,44 @@
             return data;
 
         }
+        function TextureAnimator(texture, tilesHoriz, tilesVert, numTiles, tileDispDuration) 
+        {	
+            // note: texture passed by reference, will be updated by the update function.
+		
+            this.tilesHorizontal = tilesHoriz;
+            this.tilesVertical = tilesVert;
+            // how many images does this spritesheet contain?
+            //  usually equals tilesHoriz * tilesVert, but not necessarily,
+            //  if there at blank tiles at the bottom of the spritesheet. 
+            this.numberOfTiles = numTiles;
+            texture.wrapS = texture.wrapT = THREE.RepeatWrapping; 
+            texture.repeat.set( 1 / this.tilesHorizontal, 1 / this.tilesVertical );
 
+            // how long should each image be displayed?
+            this.tileDisplayDuration = tileDispDuration;
+
+            // how long has the current image been displayed?
+            this.currentDisplayTime = 0;
+
+            // which image is currently being displayed?
+            this.currentTile = 0;
+		
+            this.update = function( milliSec )
+            {
+                this.currentDisplayTime += milliSec;
+                while (this.currentDisplayTime > this.tileDisplayDuration)
+                {
+                    this.currentDisplayTime -= this.tileDisplayDuration;
+                    this.currentTile++;
+                    if (this.currentTile == this.numberOfTiles)
+                        this.currentTile = 0;
+                    var currentColumn = this.currentTile % this.tilesHorizontal;
+                    texture.offset.x = currentColumn / this.tilesHorizontal;
+                    var currentRow = Math.floor( this.currentTile / this.tilesHorizontal );
+                    texture.offset.y = currentRow / this.tilesVertical;
+                }
+            };
+        }
         function onWindowResize() {
 
             camera.left = window.innerWidth / -2;
@@ -921,7 +1006,7 @@
             }
         }
 		
-		function continouseCollision(obj, obj2) {
+        function continouseCollision(obj, obj2) {
             var originPoint = obj.position.clone();
             //console.log('point ; ' + originPoint);
             //clearText();
@@ -1132,11 +1217,11 @@
             collision(car, boxArray);
             //createMines(0,0,0);
             updateTime();
-			for(var k = 0; k < myWorld.noOfEnemies(); k++){
-				collision(enemyCarr[k], enemyCarr);
-				if(k >= myWorld.noOfEnemies())
-					k = 0;
-			}
+            for(var k = 0; k < myWorld.noOfEnemies(); k++){
+                collision(enemyCarr[k], enemyCarr);
+                if(k >= myWorld.noOfEnemies())
+                    k = 0;
+            }
             //renderer.clear();
             render();
             stats.update();
@@ -1194,6 +1279,92 @@
 
             });
 
+        }
+		
+        function createEnemies2(){
+			
+			
+            // var carGeometry = new THREE.CubeGeometry(400, 20, 150);
+            // var carMaterial = new THREE.MeshLambertMaterial({
+            // color : 0x000000,
+            // //shading : THREE.FlatShading,
+            // overdraw : true,
+            // map : texture
+            // });
+            for (var k = 1; k <= myWorld.noOfEnemies(); k++) {
+
+                // Ncar = new THREE.Mesh(carGeometry, carMaterial);
+                // myWorld.setWorldEnemyCar(k);
+                // Ncar.position.x = myWorld.enemyCar.position.x + 10;
+                // Ncar.position.y = myWorld.enemyCar.position.y + 10;
+                // Ncar.position.z = myWorld.enemyCar.position.z;
+					
+                // Ncar.castShoadow = true;
+                // Ncar.receiveShadow = true;
+                // Ncar.material.wireframe = true;
+                // Ncar.lastShot = Date.now();
+                //scene.add(Ncar);
+                // enemyCarr.push(Ncar);
+                // var shader = THREE.ShaderUtils.lib["cube"];
+                // var material = new THREE.ShaderMaterial( {
+
+                // uniforms: shader.uniforms,
+                // fragmentShader: shader.fragmentShader,
+                // vertexShader: shader.vertexShader
+
+                // } );				
+                text = new THREE.Texture();
+
+                var loader = new THREE.ImageLoader();
+                loader.addEventListener('load', function(event) {
+
+                    text.image = event.content;
+                    text.needsUpdate = true;
+
+                });
+                loader.load('images/0.jpg');
+				
+                var loader = new THREE.OBJMTLLoader();
+                loader.addEventListener('load', function(event) {
+
+                    object = event.content;
+
+                    for (var i = 0, l = object.children.length; i < l; i++) {
+
+                        object.children[i].material.map = text;
+					
+                    }
+                    object.scale.x = object.scale.y = object.scale.z = 90;
+                    // object.position.x = myWorld.enemyCar.position.x;
+                    // object.position.y = 50;
+                    // object.position.z = myWorld.enemyCar.position.z;
+                    object.rotation.x = -(Math.PI) / 2;
+                    object.rotation.z = (Math.PI) / 2;
+					
+                    arrayTrue.push(object);
+                    //scene.add(object);
+
+                });
+                loader.load('objc/LP670/lp670.obj', 'objc/car/lp670.mtl');
+				
+                // var pointGeo = new THREE.CubeGeometry(1, 1, 1);
+                // var pointMaterial = new THREE.MeshLambertMaterial({
+                // color : 0x003300,
+                // //shading : THREE.FlatShading,
+                // overdraw : true,
+                // //map : texture
+                // });
+				
+                // var pointLeft = new THREE.Mesh(pointGeo, pointMaterial);
+                // var pointRight = new THREE.Mesh(pointGeo, pointMaterial);
+                // scene.add(pointLeft);
+                // // scene.add(pointRight);
+                // leftPoint.push(pointLeft);
+                //rightPoint.push(pointRight);
+					
+            }
+			
+            return text;
         }
 			
         function createEnemies(){
@@ -1253,16 +1424,18 @@
                 });
                 loader.load('objc/LP670/lp670.obj', 'objc/car/lp670.mtl');
 				
-                var pointGeo = new THREE.CubeGeometry(50, 100, 50);
-                var pointMaterial = new THREE.MeshLambertMaterial({
-                    color : 0x003300,
+                var pointGeo = new THREE.CubeGeometry(50, 10, 50);
+				
+                var pointMaterial = new THREE.MeshBasicMaterial({
+                    color : 0x00FF00,
                     //shading : THREE.FlatShading,
                     overdraw : true,
                     //map : texture
                 });
 				
                 var pointLeft = new THREE.Mesh(pointGeo, pointMaterial);
-                var pointRight = new THREE.Mesh(pointGeo, pointMaterial);
+				pointLeft.scale.x = 5;
+                pointRight = new THREE.Mesh(pointGeo, pointMaterial);
                 scene.add(pointLeft);
                 // scene.add(pointRight);
                 leftPoint.push(pointLeft);
@@ -1358,6 +1531,76 @@
             box.material.wireframe = true;
             scene.add(box);
         }
+		
+        function createBoxes2(xPos, yPos, zPos) {
+            text = new THREE.Texture();
+
+            var loader = new THREE.ImageLoader();
+            loader.addEventListener('load', function(event) {
+
+                text.image = event.content;
+                text.needsUpdate = true;
+
+            });
+            loader.load('images/0.jpg');
+
+            // model
+
+            var loader = new THREE.OBJLoader();
+            loader.addEventListener('load', function(event) {
+
+                var object = event.content;
+
+                for (var i = 0, l = object.children.length; i < l; i++) {
+
+                    object.children[i].material.map = text;
+
+                }
+                object.scale.x = object.scale.y = object.scale.z = 200;
+                object.position.x = xPos;
+                object.position.y = yPos;
+                object.position.z = zPos;
+                //object.rotation.x = - (Math.PI) / 2;
+                boxContainer.push(object);
+                //scene.add(object);
+
+            });
+            loader.load('objc/Crate Box/crate.obj');
+
+            // var boxGeometry = new THREE.CubeGeometry(190, 190, 190);
+            // var boxMaterial = new THREE.MeshLambertMaterial({
+            // color : 0x000000,
+            // //shading : THREE.FlatShading,
+            // overdraw : true,
+            // //map : texture
+            // });
+
+            // box = new THREE.Mesh(boxGeometry, boxMaterial);
+            // //myWorld.setWorldCar();
+            // box.position.x = xPos;
+            // box.position.y = yPos;
+            // box.position.z = zPos - 120;
+            // box.castShoadow = true;
+            // box.receiveShadow = true;
+            // collidableMeshList.push(box);
+            // box.material.wireframe = true;
+            // scene.add(box);
+        }
+		
+        function avoidCollision(obj){
+            for (var i = collidableMeshList.length - 1; i >= 0; i--) {
+                var collideMesh = collidableMeshList[i];
+                var v = collideMesh.geometry.vertices[0];
+                var c = collideMesh.position;
+                var x = Math.abs(v.x), z = Math.abs(v.z);
+
+                if (distance(obj.position.x, obj.position.z, c.x,c.z) <= 500) {
+
+                    return true;
+                }
+            }
+            return false;
+        }
 
         function createBulletObj() {
             loader2.load('objc/bullet.dae', function colladaReady(collada) {
@@ -1450,6 +1693,20 @@
             scene.add(box);
 
         }
+		
+        function swapModels(mesh, modelOne, modelTwo){
+		
+            if(mesh.position.x != 150000){
+                modelOne.position.x = mesh.position.x;
+                modelOne.position.z = mesh.position.z;
+                modelOne.position.y = mesh.position.y + 10;
+                modelOne.rotation.z = modelTwo.rotation.z;
+							
+                scene.add(modelOne);
+            }
+            mesh.position.x = 150000;
+            mesh.position.z = 150000;
+        }
 
         function distance(x1, y1, x2, y2) {
 
@@ -1505,9 +1762,10 @@
             healthDraw(myWorld.healthControl());
             //console.log(myWorld.healthControl() + "heath");
             mapDraw();
-				
+			
+			
 
-           // createMines(localObject.position.x, 0, localObject.position.z);
+            // createMines(localObject.position.x, 0, localObject.position.z);
             ground.geometry.computeBoundingBox();
             var bBox = ground.geometry.boundingBox;
             //console.log(bBox.max.y);
@@ -1544,7 +1802,8 @@
 
             var delta = cloc.getDelta();
 				
-            customUniforms.time.value += 10 * delta;
+            customUniforms.time.value += .5 * delta;
+            boomer.update(500 * delta);
 				
 
 				
@@ -1625,6 +1884,13 @@
                     $('#hurt').fadeOut(350);
 
                 }
+				
+                // text.offset.x = 3; 
+                // text.offset.y = 3;
+
+                // text.repeat.x = 3;
+                // text.repeat.y =3 ;
+                // text.wrapS = text.wrapT = THREE.RepeatWrapping;
 
                 for (var j = enemyCarr.length - 1; j >= 0; j--) {
 
@@ -1635,15 +1901,24 @@
                     if (dist < 150 && b.owner == localObject) {
 
                         //if (j == 0) {
-                        $('#enemyHealth1').html(myWorld.enemyHealthControl(j));
-                        if (myWorld.enemyHealthControl() <= 0) {
-                            //	$('#enemyHealth1').html("Finished");
-                            //	enemy.position.x = 150000;
-                            //	enemy.position.z = 150000;
-                            //scene.remove(enemy);
-                            //animatee = false;
-                            enemyCarr[j].position.x = 150000;
-                            enemyCarr[j].position.z = 150000;
+						leftPoint[j].scale.x -= .5;
+						if(leftPoint[j].scale.x <= 1.5)
+							leftPoint[j].material.color.setHex(0xff0000);
+						
+                        
+                        if (myWorld.enemyHealthControl(j) <= 0) {
+							
+                            swapModels(enemyCarr[j], arrayTrue[j], enemyModels[j]);
+                            // if(enemyCarr[j].position.x != 150000){
+                            // arrayTrue[j].position.x = enemyCarr[j].position.x;
+                            // arrayTrue[j].position.z = enemyCarr[j].position.z;
+                            // arrayTrue[j].position.y = enemyCarr[j].position.y + 10;
+                            // arrayTrue[j].rotation.z = enemyModels[j].rotation.z;
+							
+                            // scene.add(arrayTrue[j]);
+                            // }
+                            // enemyCarr[j].position.x = 150000;
+                            // enemyCarr[j].position.z = 150000;
 
                         }
 
@@ -1654,6 +1929,8 @@
 
                     //scene.remove(enemy);
                 }
+				
+				
 
             }
             //localObject.rotation.y = -.5
@@ -1702,7 +1979,7 @@
 
             }
             // if (keyboard.pressed("P")) {
-                // gameMenu();
+            // gameMenu();
 
             // }
             // if (keyboard.pressed("space")) {
@@ -1732,13 +2009,20 @@
             //localObject.rotation.y = computedY;
             car.position.x = computedX;
             car.position.z = computedZ;
+			
+            if(myWorld.healthControl() <= 30){
+                ball.position.y = localObject.position.y + 90;
+                ball.position.x = (localObject.position.x + ((speed * Math.cos(eR)) * phaseX));
+                ball.position.z = (localObject.position.z - ((speed * Math.sin(eR)) * phaseY));
+				
+            }
 
             // =========================NEW ENEMY CAR========================================
-				// move = 'R';
+            // move = 'R';
             var defference = 0;
             //var hitDirection = false;
 				
-            if (enemyModels.length != 0){
+            if (enemyModels.length != 0 && arrayTrue.length != 0){
 				
 				
 				
@@ -1747,13 +2031,13 @@
                     var enemyCordinates = getEnemyCordinates(enemyCarr[k].position.x, enemyCarr[k].position.z);
                     var playerCordinates = getPlayerCordinates(localObject.position.x, localObject.position.z);
 					
-					getDirection(enemyCarr[k], cameraArray[k], localObject);
+                    getDirection(enemyCarr[k], cameraArray[k], localObject);
 					
-					// var vec1 = localObject.position.clone().normalize();
-					// var vec2 = enemyCarr[k].position.clone().normalize();
+                    // var vec1 = localObject.position.clone().normalize();
+                    // var vec2 = enemyCarr[k].position.clone().normalize();
 					
 					
-					var b;
+                    var b;
                     for (var i = checkDirection.length - 1; i >= 0; i--) {
                         b = checkDirection[i];
                         //createMines(b.position.x, 20, b.position.z);
@@ -1763,15 +2047,15 @@
                         b.position.x += bspeed * -(d.x);
                         b.position.z += bspeed * -(d.z);
 
-						if (b.owner === enemyCarr[k] && distance (b.position.x, b.position.z, localObject.position.x, localObject.position.z) <= 300){
-							//move = 'L';
-							//var index = k;
-							hitDirection = true;
-							hitObj = enemyCarr[k];
-							scene.remove(b);
-							//indexDir = k;
-							//enemyModels[k].rotation.z = myWorld.setEnemyCarRotation('L', enemyModels[k].rotation.z, k);
-						}
+                        if (b.owner === enemyCarr[k] && distance (b.position.x, b.position.z, localObject.position.x, localObject.position.z) <= 300){
+                            //move = 'L';
+                            //var index = k;
+                            hitDirection = true;
+                            hitObj = enemyCarr[k];
+                            scene.remove(b);
+                            //indexDir = k;
+                            //enemyModels[k].rotation.z = myWorld.setEnemyCarRotation('L', enemyModels[k].rotation.z, k);
+                        }
 						
 						
 						
@@ -1779,65 +2063,80 @@
 					
                     }
 					
+                    // if(avoidCollision(enemyCarr[k]) === true){
+                    // enemyModels[k].rotation.z = myWorld.setEnemyCarRotation(move, enemyModels[k].rotation.z, k);
+                    // enemyCarr[k].position.x = myWorld.setEnemyCarNewPositionX(myWorld.setEnemyCarSpeed('R', false, k), eRN, enemyCarr[k].position.x, k);
+                    // enemyCarr[k].position.z = myWorld.setEnemyCarNewPositionZ(myWorld.setEnemyCarSpeed('R', false, k), eRN, enemyCarr[k].position.z, k);
+                    // }
 					
                     //var rotation = enemyModels[k].rotation.z - localObject.rotation.z;
-					if (hitDirection == true && hitObj == enemyCarr[k]){
+                    if (hitDirection == true && hitObj == enemyCarr[k]){
 					
-					enemyModels[k].rotation.z = myWorld.setEnemyCarRotation('S', enemyModels[k].rotation.z, k);
-					enemyCarr[k].rotation.y = enemyModels[k].rotation.z + enemyModels[k].rotation.x;
-                    leftPoint[k].rotation.x =  enemyModels[k].rotation.x;
-                    leftPoint[k].rotation.z =  enemyModels[k].rotation.z;
+                        enemyModels[k].rotation.z = myWorld.setEnemyCarRotation('S', enemyModels[k].rotation.z, k);
+                        enemyCarr[k].rotation.y = enemyModels[k].rotation.z + enemyModels[k].rotation.x;
+                        leftPoint[k].rotation.x =  enemyModels[k].rotation.x;
+                        leftPoint[k].rotation.z =  enemyModels[k].rotation.z;
 					
-                    var eRN = enemyModels[k].rotation.z + enemyModels[k].rotation.x;
-                    cameraArray[k].position.x = enemyCarr[k].position.x - (Math.cos(eRN) * 500 );
-                    cameraArray[k].position.z = enemyCarr[k].position.z + (Math.sin(eRN) * 500 );
-                    cameraArray[k].lookAt(enemyCarr[k].position);
+                        var eRN = enemyModels[k].rotation.z + enemyModels[k].rotation.x;
+                        cameraArray[k].position.x = enemyCarr[k].position.x - (Math.cos(eRN) * 500 );
+                        cameraArray[k].position.z = enemyCarr[k].position.z + (Math.sin(eRN) * 500 );
+                        cameraArray[k].lookAt(enemyCarr[k].position);
 					
-                    leftPoint[k].position.x = enemyCarr[k].position.x - (Math.cos(eRN) * 500 );
-                    leftPoint[k].position.z = enemyCarr[k].position.z + (Math.sin(eRN) * 500 );
+                        // leftPoint[k].position.x = enemyCarr[k].position.x - (Math.cos(eRN) * 500 );
+                        // leftPoint[k].position.z = enemyCarr[k].position.z + (Math.sin(eRN) * 500 );
+						leftPoint[k].position.y = 150;
 					
-					if (distance (enemyCarr[k].position.x, enemyCarr[k].position.z, localObject.position.x, localObject.position.z) <= 600){
-                    enemyCarr[k].position.x = myWorld.setEnemyCarNewPositionX(myWorld.setEnemyCarSpeed('L', false, k), eRN, enemyCarr[k].position.x, k);
-                    enemyCarr[k].position.z = myWorld.setEnemyCarNewPositionZ(myWorld.setEnemyCarSpeed('L', false, k), eRN, enemyCarr[k].position.z, k);
-					}
-					else{
-					enemyCarr[k].position.x = myWorld.setEnemyCarNewPositionX(myWorld.setEnemyCarSpeed('R', false, k), eRN, enemyCarr[k].position.x, k);
-                    enemyCarr[k].position.z = myWorld.setEnemyCarNewPositionZ(myWorld.setEnemyCarSpeed('R', false, k), eRN, enemyCarr[k].position.z, k);
-					}
+                        if (distance (enemyCarr[k].position.x, enemyCarr[k].position.z, localObject.position.x, localObject.position.z) <= 600){
+                            // enemyCarr[k].position.x = myWorld.setEnemyCarNewPositionX(myWorld.setEnemyCarSpeed('L', false, k), eRN, enemyCarr[k].position.x, k);
+                            // enemyCarr[k].position.z = myWorld.setEnemyCarNewPositionZ(myWorld.setEnemyCarSpeed('L', false, k), eRN, enemyCarr[k].position.z, k);
+                        }
+                        else{
+                            // enemyCarr[k].position.x = myWorld.setEnemyCarNewPositionX(myWorld.setEnemyCarSpeed('R', false, k), eRN, enemyCarr[k].position.x, k);
+                            // enemyCarr[k].position.z = myWorld.setEnemyCarNewPositionZ(myWorld.setEnemyCarSpeed('R', false, k), eRN, enemyCarr[k].position.z, k);
+                        }
 					
-                    enemyModels[k].position.x = enemyCarr[k].position.x;
-                    enemyModels[k].position.z = enemyCarr[k].position.z;
-					//hitDirection = false;
-					}
-					else{
-					enemyModels[k].rotation.z = myWorld.setEnemyCarRotation(move, enemyModels[k].rotation.z, k);
-					enemyCarr[k].rotation.y = enemyModels[k].rotation.z + enemyModels[k].rotation.x;
-                    leftPoint[k].rotation.x =  enemyModels[k].rotation.x;
-                    leftPoint[k].rotation.z =  enemyModels[k].rotation.z;
+                        enemyModels[k].position.x = enemyCarr[k].position.x;
+                        enemyModels[k].position.z = enemyCarr[k].position.z;
+						
+						leftPoint[k].position.x = enemyCarr[k].position.x;
+                        leftPoint[k].position.z = enemyCarr[k].position.z;
+						
+						
+                        //hitDirection = false;
+                    }
+                    else{
+                        enemyModels[k].rotation.z = myWorld.setEnemyCarRotation(move, enemyModels[k].rotation.z, k);
+                        enemyCarr[k].rotation.y = enemyModels[k].rotation.z + enemyModels[k].rotation.x;
+                        leftPoint[k].rotation.x =  enemyModels[k].rotation.x;
+                        leftPoint[k].rotation.z =  enemyModels[k].rotation.z;
 					
-                    var eRN = enemyModels[k].rotation.z + enemyModels[k].rotation.x;
-                    cameraArray[k].position.x = enemyCarr[k].position.x - (Math.cos(eRN) * 500 );
-                    cameraArray[k].position.z = enemyCarr[k].position.z + (Math.sin(eRN) * 500 );
-                    cameraArray[k].lookAt(enemyCarr[k].position);
+                        var eRN = enemyModels[k].rotation.z + enemyModels[k].rotation.x;
+                        cameraArray[k].position.x = enemyCarr[k].position.x - (Math.cos(eRN) * 500 );
+                        cameraArray[k].position.z = enemyCarr[k].position.z + (Math.sin(eRN) * 500 );
+                        cameraArray[k].lookAt(enemyCarr[k].position);
 					
-                    leftPoint[k].position.x = enemyCarr[k].position.x - (Math.cos(eRN) * 500 );
-                    leftPoint[k].position.z = enemyCarr[k].position.z + (Math.sin(eRN) * 500 );
+                        // leftPoint[k].position.x = enemyCarr[k].position.x - (Math.cos(eRN) * 500 );
+                        // leftPoint[k].position.z = enemyCarr[k].position.z + (Math.sin(eRN) * 500 );
+						leftPoint[k].position.y = 150;
 					
-                    if (distance (enemyCarr[k].position.x, enemyCarr[k].position.z, localObject.position.x, localObject.position.z) <= 600){
-                    enemyCarr[k].position.x = myWorld.setEnemyCarNewPositionX(myWorld.setEnemyCarSpeed('L', false, k), eRN, enemyCarr[k].position.x, k);
-                    enemyCarr[k].position.z = myWorld.setEnemyCarNewPositionZ(myWorld.setEnemyCarSpeed('L', false, k), eRN, enemyCarr[k].position.z, k);
-					}
-					else{
-					enemyCarr[k].position.x = myWorld.setEnemyCarNewPositionX(myWorld.setEnemyCarSpeed('R', false, k), eRN, enemyCarr[k].position.x, k);
-                    enemyCarr[k].position.z = myWorld.setEnemyCarNewPositionZ(myWorld.setEnemyCarSpeed('R', false, k), eRN, enemyCarr[k].position.z, k);
-					}
+                        if (distance (enemyCarr[k].position.x, enemyCarr[k].position.z, localObject.position.x, localObject.position.z) <= 600){
+                            // enemyCarr[k].position.x = myWorld.setEnemyCarNewPositionX(myWorld.setEnemyCarSpeed('L', false, k), eRN, enemyCarr[k].position.x, k);
+                            // enemyCarr[k].position.z = myWorld.setEnemyCarNewPositionZ(myWorld.setEnemyCarSpeed('L', false, k), eRN, enemyCarr[k].position.z, k);
+                        }
+                        else{
+                            // enemyCarr[k].position.x = myWorld.setEnemyCarNewPositionX(myWorld.setEnemyCarSpeed('R', false, k), eRN, enemyCarr[k].position.x, k);
+                            // enemyCarr[k].position.z = myWorld.setEnemyCarNewPositionZ(myWorld.setEnemyCarSpeed('R', false, k), eRN, enemyCarr[k].position.z, k);
+                        }
 					
-                    enemyModels[k].position.x = enemyCarr[k].position.x;
-                    enemyModels[k].position.z = enemyCarr[k].position.z;
+                        enemyModels[k].position.x = enemyCarr[k].position.x;
+                        enemyModels[k].position.z = enemyCarr[k].position.z;
+						
+						leftPoint[k].position.x = enemyCarr[k].position.x;
+                        leftPoint[k].position.z = enemyCarr[k].position.z;
 					
-					}
+                    }
 					
-                     // enemyModels[k].rotation.z = myWorld.setEnemyCarRotation(move, enemyModels[k].rotation.z, k);
+                    // enemyModels[k].rotation.z = myWorld.setEnemyCarRotation(move, enemyModels[k].rotation.z, k);
                     //enemyModels[k].rotation.z = Math.atan(rotation);
                     // enemyCarr[k].rotation.y = enemyModels[k].rotation.z + enemyModels[k].rotation.x;
                     // leftPoint[k].rotation.x =  enemyModels[k].rotation.x;
@@ -1865,10 +2164,10 @@
                     // var ray = new THREE.Ray(enemyModels[k].position, new THREE.Vector3(-1, 0, 0));
 
 					
-					// var vec1 = localObject.position.clone().normalize();
-					// var vec2 = enemyCarr[k].position.clone().normalize();
+                    // var vec1 = localObject.position.clone().normalize();
+                    // var vec2 = enemyCarr[k].position.clone().normalize();
 					
-					// console.log("Dot Product " + k + " " + Math.ceil(vec2.dot(vec1)));
+                    // console.log("Dot Product " + k + " " + Math.ceil(vec2.dot(vec1)));
 				
 					
                     if (k > myWorld.noOfEnemies()) {

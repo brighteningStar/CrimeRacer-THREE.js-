@@ -17,11 +17,18 @@ CrimeRacer.World = function() {
 	};
 	
 	this.enemyCarArray = [];
+	this.boxesContainer = [];
 	
 	for (var i = 0; i < this.noOfEnemy; i++){
 		
 		enemyCars = new CrimeRacer.enemyCar;
 		this.enemyCarArray.push(enemyCars);
+	}
+	
+	for (var i = 0; i < this.noOfBoxes; i++){
+		
+		worldBoxes = new CrimeRacer.Boxes;
+		this.boxesContainer.push(worldBoxes);
 	}
 
 	//for(var i = 0; i < this.noOfEnemy; i++){
@@ -186,7 +193,7 @@ CrimeRacer.World.prototype.setWorldEnemyCar = function(EnemyCarId) {
 		//this.enemyCar = this.enemy.enemyCar3;
 		this.enemyCar.setPos(1000, 0, 1000);
 	}
-	if (EnemyCarId == 4) {
+	if (EnemyCarId == 5) {
 		//this.enemyCar = this.enemy.enemyCar3;
 		this.enemyCar.setPos(3000, 0, 5000);
 	}
@@ -359,6 +366,24 @@ CrimeRacer.World.prototype.enemyHealthControl = function(id) {
 		// this.enemyCar = this.enemy.enemyCar3;
 	// }
 		return this.enemyCar.getHealth();
+}
+CrimeRacer.World.prototype.boxHealthControl = function(id) {
+
+	if(id != undefined)
+	this.boxWorld = this.boxContainer[id];
+	// if (id == 0) {
+		
+		// this.enemyCar = this.enemy.enemyCar1;
+
+	// }
+	// if (id == 1) {
+		// this.enemyCar = this.enemy.enemyCar2;
+
+	// }
+	// if (id == 2) {
+		// this.enemyCar = this.enemy.enemyCar3;
+	// }
+		return this.boxWorld.getHealth();
 }
 
 
