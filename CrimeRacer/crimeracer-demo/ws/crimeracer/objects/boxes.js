@@ -30,7 +30,7 @@ CrimeRacer.Boxes.prototype.setPos = function(xPos, yPos, zPos) {
 }
 CrimeRacer.Boxes.prototype.getHealth = function() {
 
-	return this.health -= 3;
+	return this.health -= 10;
 }
 
 

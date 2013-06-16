@@ -7,8 +7,8 @@ CrimeRacer.World = function() {
 	this.noOfSides = 4;
 	this.noOfBlocksPerWall = 200;
 	this.carSpeedCkeck
-	this.noOfEnemy = 5;
-	this.noOfBoxes = 10;
+	this.noOfEnemy = 3;
+	this.noOfBoxes = 5;
 	
 	this.enemy = {
 		enemyCar1 : new CrimeRacer.enemyCar,
@@ -29,6 +29,8 @@ CrimeRacer.World = function() {
 		
 		worldBoxes = new CrimeRacer.Boxes;
 		this.boxesContainer.push(worldBoxes);
+		
+		
 	}
 
 	//for(var i = 0; i < this.noOfEnemy; i++){
@@ -244,7 +246,7 @@ CrimeRacer.World.prototype.setEnemyCarSpeed = function(timer, hit, id) {
 		this.carSpeedCkeck = this.enemyCar.carHit();
 
 	}
-	console.log(this.carSpeedCkeck);
+	//console.log(this.carSpeedCkeck);
 	return this.carSpeedCkeck;
 
 }
@@ -368,9 +370,10 @@ CrimeRacer.World.prototype.enemyHealthControl = function(id) {
 		return this.enemyCar.getHealth();
 }
 CrimeRacer.World.prototype.boxHealthControl = function(id) {
-
+	
+	
 	if(id != undefined)
-	this.boxWorld = this.boxContainer[id];
+	this.boxWorld = this.boxesContainer[id];
 	// if (id == 0) {
 		
 		// this.enemyCar = this.enemy.enemyCar1;
