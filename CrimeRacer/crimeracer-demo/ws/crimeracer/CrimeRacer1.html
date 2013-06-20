@@ -207,7 +207,7 @@
     <script src="loader/ColladaLoader.js"></script>
     <script src="loader/Car.js"></script>
     <script src="loader/OBJMTLLoader.js"></script>
-    <script src="objects/world.js"></script>
+    <script src="objects/world2.js"></script>
     <script src="objects/tree.js"></script>
     <script src="objects/boxes.js"></script>
 
@@ -477,9 +477,9 @@
             
 
             data = generateHeight(worldWidth, worldDepth);
-            var texture = THREE.ImageUtils.loadTexture("images/road2.jpg");
+            var texture = THREE.ImageUtils.loadTexture("images/1.jpg");
             texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
-            texture.repeat.set(100, 100);
+            texture.repeat.set(10, 10);
 
             groundBasic = new THREE.MeshLambertMaterial({
                 color : 0x473e34,
@@ -1774,7 +1774,7 @@ bombCube.rotation.x += 0.04
             var count = myWorld.getBombOfPlayer();
             if (Date.now() > lastHealthPickup + 60000) {
                 if (distance(localObject.position.x, localObject.position.z, bombCube.position.x, bombCube.position.z) <= 150 && count != 15) {
-                    count = Math.min(count + 5, 15);
+                    count = Math.min(count + 10, 15);
                     //$('#health').html(health);
                     myWorld.setBombCount(count);
                     lastHealthPickup = Date.now();

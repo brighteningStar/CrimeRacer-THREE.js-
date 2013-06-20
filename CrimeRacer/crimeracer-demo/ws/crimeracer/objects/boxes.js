@@ -23,9 +23,9 @@ var myFunctionBoxPos = function() {
 }
 CrimeRacer.Boxes.prototype.setPos = function(xPos, yPos, zPos) {
 	var boxPos = myFunctionBoxPos();
-	this.position.x = Math.floor((Math.random() * 7000)+ (-7000));
+	this.position.x = Math.floor((Math.random() * xPos)+ (-xPos));
 	this.position.y = yPos;
-	this.position.z = Math.floor((Math.random()* -7000)+1);
+	this.position.z = Math.floor((Math.random()* -zPos)+1);
 
 }
 CrimeRacer.Boxes.prototype.getHealth = function() {

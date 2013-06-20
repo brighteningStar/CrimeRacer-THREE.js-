@@ -13,7 +13,7 @@ CrimeRacer.enemyCar = function() {
 	this.rotationalAngle = 0.05;
 	this.acceleration = 3;
 	this.backAccelearation = 1500;
-	this.speedAfterHit = -10;
+	this.speedAfterHit = -50;
 	this.phaseX = 1;
 	this.phaseY = 1;
 	// default at position 0

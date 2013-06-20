@@ -14,6 +14,10 @@ CrimeRacer.Car = function() {
 	this.acceleration = 3;
 	this.hitSpeed = -10;
 	this.backSpeed = -10;
+	this.mines = 15;
+	this.bullets = 200;
+	this.bombs = 15;
+	
 	// default at position 0
 }
 
@@ -87,6 +91,30 @@ CrimeRacer.Car.prototype.reduceHealth = function() {
 
 	return this.health -= 10;
 }
+CrimeRacer.Car.prototype.reduceMines = function() {
+
+	this.mines--;
+}
+CrimeRacer.Car.prototype.reduceBombs = function() {
+
+	this.bombs--;
+}
+CrimeRacer.Car.prototype.reduceBullets = function() {
+
+	this.bullets--;
+}
+CrimeRacer.Car.prototype.getMines = function() {
+
+	return this.mines;
+}
+CrimeRacer.Car.prototype.getBomb = function() {
+
+	return this.bombs;
+}
+CrimeRacer.Car.prototype.getBullets = function() {
+
+	return this.bullets;
+}
 
 CrimeRacer.Car.prototype.getHealth = function() {
 
@@ -97,7 +125,14 @@ CrimeRacer.Car.prototype.setHealth = function(health) {
 
 	this.health = health;
 }
+CrimeRacer.Car.prototype.setBomb = function(bomb) {
 
+	this.bombs = bomb;
+}
+CrimeRacer.Car.prototype.setMines = function(mines) {
+
+	this.mines = mines;
+}
 CrimeRacer.Car.prototype.getrotationalAngle = function() {
 
 	return this.rotationalAngle;
